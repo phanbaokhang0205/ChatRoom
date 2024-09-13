@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from PIL import Image, ImageDraw, ImageOps
+# s
 
 WINDOW_WIDTH = 1700-600
 WINDW_HEIGHT = 1111-500
@@ -16,23 +17,28 @@ thì thay giúp e Khang với nghee...
 """
 
 
-def create_rounded_image(image_path, size):
+def create_rounded_image(image_path, size, upscale_factor=2):
     # Mở ảnh gốc
     image = Image.open(image_path).convert("RGBA")
 
     # Thay đổi kích thước ảnh với bộ lọc LANCZOS để giữ chất lượng cao
-    image = image.resize((size, size), Image.LANCZOS)
+    upscale_size = (size * upscale_factor, size * upscale_factor)
+    image = image.resize(upscale_size, Image.LANCZOS)
 
-    # Tạo một mặt nạ hình tròn
-    mask = Image.new("L", (size, size), 0)
+    # Tạo một mặt nạ hình tròn với độ phân giải cao hơn
+    mask = Image.new("L", upscale_size, 0)
     draw = ImageDraw.Draw(mask)
-    draw.ellipse((0, 0, size, size), fill=255)
+    draw.ellipse((0, 0, upscale_size[0], upscale_size[1]), fill=255)
 
     # Áp dụng mặt nạ vào ảnh để bo tròn
-    rounded_image = ImageOps.fit(image, (size, size), centering=(0.5, 0.5))
+    rounded_image = ImageOps.fit(image, upscale_size, centering=(0.5, 0.5))
     rounded_image.putalpha(mask)
 
+    # Giảm kích thước ảnh về kích thước yêu cầu ban đầu
+    rounded_image = rounded_image.resize((size, size), Image.LANCZOS)
+
     return rounded_image
+
 
 
 # 1: container
@@ -52,8 +58,6 @@ class App(ctk.CTk):
         self.rowconfigure(0, weight=1)
 
 # 2: Frame ben trai.
-
-
 class LeftFrame(ctk.CTkScrollableFrame):
     def __init__(self, container):
         super().__init__(container, fg_color="#2B2B2B", corner_radius=0)
@@ -63,7 +67,6 @@ class LeftFrame(ctk.CTkScrollableFrame):
         self.grid(row=0, column=0, sticky="snew")
 
 # 2.1: Frame:
-
 
 class LeftTitle(ctk.CTkFrame):
     def __init__(self, container):
@@ -143,7 +146,7 @@ class UserFrame(ctk.CTkFrame):
             master=self,
             text=content_msg,
             text_color='white',
-            font=("Arial", 14)
+            font=("Times", 15)
 
         )
         self.pre_content.grid(row=1, column=1, sticky='w',)
@@ -179,7 +182,7 @@ class CenterTitle(ctk.CTkFrame):
             text='',
             image=new_img,
         ).pack(anchor='w', side='left')
-        self.name_content = Name_Content(self, "Phan Bao Khang", 14)
+        self.name_content = Name_Content(self, "Phan Bao Khang", 16)
         self.name_content.pack(anchor='w', side='left', padx=(10, 0))
 
         # Phone & Video icons
@@ -203,7 +206,7 @@ class Name_Content(ctk.CTkFrame):
             master=self,
             text="Active now",
             text_color='white',
-            font=('Arial', size),
+            font=('Times', 15),
         ).pack(anchor='w')
 
 
@@ -356,7 +359,7 @@ class RightFrame(ctk.CTkFrame):
         self.active = ctk.CTkLabel(
             master=self,
             text='Active',
-            font=('Arial', 14),
+            font=('Times', 15),
             text_color='white'
         ).pack()
 
@@ -364,30 +367,43 @@ class RightFrame(ctk.CTkFrame):
         self.icons = Icon_of_Right(self)
         self.icons.pack(pady=10)
 
+        # gradient_image1 = PhotoImage(file='img/btn_1.png')
+        # gradient_image2 = PhotoImage(file='img/btn_2.png')
+        # gradient_image3 = PhotoImage(file='img/btn_3.png')
+        # gradient_image4 = PhotoImage(file='img/btn_4.png')
+
         # The buttons
         self.change_emoji = ctk.CTkButton(
             master=self,
             text='Change Emoji',
             width=180,
             height=40,
+            fg_color=("#f9f944", "blue"),
+            text_color="black"
         )
         self.edit_nickname = ctk.CTkButton(
             master=self,
             text='Edit nicknames',
             width=180,
             height=40,
+            fg_color=("#44e6f9", "blue"),
+            text_color="black"
         )
         self.media = ctk.CTkButton(
             master=self,
             text='Media',
             width=180,
             height=40,
+            fg_color=("#44f975", "blue"),
+            text_color="black"
         )
         self.files = ctk.CTkButton(
             master=self,
             text='Files',
             width=180,
             height=40,
+            fg_color=("#f346f0", "blue"),
+            text_color="black"
         )
         self.change_emoji.pack(pady=10)
         self.edit_nickname.pack()
