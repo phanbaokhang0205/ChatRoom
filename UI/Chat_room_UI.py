@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import tkinter as tk
 from PIL import Image, ImageDraw, ImageOps
 
 WINDOW_WIDTH = 1700-600
@@ -344,7 +345,7 @@ class RightFrame(ctk.CTkFrame):
             text='',
             image=new_img,
         )
-        self.avatar.pack(pady=(20,10))
+        self.avatar.pack(pady=(20, 10))
 
         # Name & active
         self.name = ctk.CTkLabel(
