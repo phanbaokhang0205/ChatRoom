@@ -1,7 +1,5 @@
 import customtkinter as ctk
-import tkinter as tk
 from PIL import Image, ImageDraw, ImageOps
-# s
 
 WINDOW_WIDTH = 1700-600
 WINDW_HEIGHT = 1111-500
@@ -159,7 +157,7 @@ class UserFrame(ctk.CTkFrame):
 
 class CenterFrame(ctk.CTkFrame):
     def __init__(self, container):
-        super().__init__(container, fg_color=BLACK, corner_radius=0)
+        super().__init__(container,bg_color=BLACK, fg_color=BLACK, corner_radius=0)
 
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
