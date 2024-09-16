@@ -12,6 +12,25 @@ BLACK = '#2B2B2B'
 LIGHT_BLACK = '#353535'
 
 
+users = [
+    {
+        'fullName': 'phan bao khang',
+        'age': 20,
+        'email': 'phanbaokhang0205@gmail.com',
+        'password': '123@321'
+    }
+]
+
+
+def register(fullName, age, email, password):
+    new_user = {
+        'fullName': fullName,
+        'age': age,
+        'email': email,
+        'password': password
+    }
+    users.append(new_user)
+    print(users)
 
 # 1: container
 
@@ -22,6 +41,7 @@ class App(ctk.CTk):
 
         # config window
         self.title("Chat room")
+        # self.geometry("{0}x{1}+0+0".format(self.winfo_screenwidth(), self.winfo_screenheight()))
         self.geometry(f'{WINDOW_WIDTH}x{WINDOW_HEIGHT}{WINDOW_POSITION}')
         self.resizable(False, False)
 
@@ -51,7 +71,7 @@ class LeftFrame(ctk.CTkFrame):
             image=image_photo,
             fg_color=LIGHT_BLACK,
 
-        ).grid(row=0, column=0, sticky='snew',padx=40, pady=40)
+        ).grid(row=0, column=0, sticky='snew', padx=40, pady=40)
 
         self.grid(row=0, column=0, sticky='snew')
 
@@ -72,7 +92,41 @@ class RightFrame(ctk.CTkFrame):
             text='Register',
             font=('Aria', 60, 'bold'),
             text_color=CYAN
-        ).grid(row=0, column=0, sticky='w', columnspan=2, pady=(80,40))
+        ).grid(row=0, column=0, sticky='w', columnspan=2, pady=(50, 40))
+
+        # Full name
+        self.fullName = ctk.StringVar()
+        self.fullName_label = ctk.CTkLabel(
+            master=self,
+            text='Full name',
+            font=('Aria', 14),
+            text_color=CYAN
+        ).grid(row=1, column=0, sticky='w')
+        self.fullName_input = ctk.CTkEntry(
+            master=self,
+            textvariable=self.fullName,
+            text_color='white',
+            fg_color=GREY,
+            border_color=GREY
+        )
+        self.fullName_input.grid(row=2, column=0, ipady=5, sticky='w', pady=(0, 30))
+
+        # Age
+        self.age = ctk.StringVar()
+        self.age_label = ctk.CTkLabel(
+            master=self,
+            text='Age',
+            font=('Aria', 14),
+            text_color=CYAN
+        ).grid(row=1, column=1, sticky='w')
+        self.age_input = ctk.CTkEntry(
+            master=self,
+            textvariable=self.age,
+            text_color='white',
+            fg_color=GREY,
+            border_color=GREY
+        )
+        self.age_input.grid(row=2, column=1, ipady=5, sticky='w', pady=(0, 30))
 
         # user or email
         self.userValue = ctk.StringVar()
@@ -82,14 +136,15 @@ class RightFrame(ctk.CTkFrame):
             text='User or Email',
             font=('Aria', 14),
             text_color=CYAN
-        ).grid(row=1, column=0, sticky='w')
+        ).grid(row=3, column=0, sticky='w')
         self.user_input = ctk.CTkEntry(
             master=self,
             textvariable=self.userValue,
             text_color='white',
             fg_color=GREY,
             border_color=GREY
-        ).grid(row=2, column=0, columnspan=2, sticky='ew', ipady=10, padx=(0, 40), pady=(0,40))
+        )
+        self.user_input.grid(row=4, column=0, columnspan=2, sticky='ew', ipady=5, padx=(0, 40), pady=(0, 30))
 
         # password
         self.passValue = ctk.StringVar()
@@ -99,7 +154,7 @@ class RightFrame(ctk.CTkFrame):
             text='Password',
             font=('Aria', 14),
             text_color=CYAN
-        ).grid(row=3, column=0, sticky='w')
+        ).grid(row=5, column=0, sticky='w')
 
         self.pass_input = ctk.CTkEntry(
             master=self,
@@ -108,7 +163,8 @@ class RightFrame(ctk.CTkFrame):
             fg_color=GREY,
             border_color=GREY,
             show='*'
-        ).grid(row=4, column=0, columnspan=2, sticky='ew', ipady=10, padx=(0, 40), pady=(0, 40))
+        )
+        self.pass_input.grid(row=6, column=0, columnspan=2, sticky='ew', ipady=5, padx=(0, 40), pady=(0, 30))
 
         # password again
         self.pass_againValue = ctk.StringVar()
@@ -118,27 +174,34 @@ class RightFrame(ctk.CTkFrame):
             text='Password Again',
             font=('Aria', 14),
             text_color=CYAN
-        ).grid(row=5, column=0, sticky='w')
+        ).grid(row=7, column=0, sticky='w')
 
-        self.pass_input = ctk.CTkEntry(
+        self.pass_agian_input = ctk.CTkEntry(
             master=self,
             textvariable=self.pass_againValue,
             text_color='white',
             fg_color=GREY,
             border_color=GREY,
             show='*'
-        ).grid(row=6, column=0, columnspan=2, sticky='ew', ipady=10, padx=(0, 40), pady=(0, 40))
+        )
+        self.pass_agian_input.grid(row=8, column=0, columnspan=2, sticky='ew', ipady=5, padx=(0, 40), pady=(0, 30))
 
         # register
         self.register_btn = ctk.CTkButton(
             master=self,
             text='Register',
-            font=('Aria',14,'bold'),
+            font=('Aria', 14, 'bold'),
             text_color=BLACK,
             fg_color=CYAN,
             cursor="hand2",
+            command=lambda: register(
+                fullName=self.fullName_input.get(),
+                age=self.age_input.get(),
+                email=self.user_input.get(),
+                password=self.pass_input.get()
+            )
 
-        ).grid(row=7, column=0, sticky='w', )
+        ).grid(row=9, column=0, sticky='w', )
 
         self.grid(row=0, column=1, sticky='snew')
 
