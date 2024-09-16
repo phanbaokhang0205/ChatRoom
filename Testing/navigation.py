@@ -77,3 +77,39 @@ if __name__ == "__main__":
     main_content = Main_Content(container)
 
     app.mainloop()
+
+
+
+# # Full name
+#         self.fullName = ctk.StringVar()
+#         self.fullName_label = ctk.CTkLabel(
+#             master=self,
+#             text='Full name',
+#             font=('Aria', 14),
+#             text_color=CYAN
+#         ).grid(row=1, column=0, sticky='w')
+#         self.fullName_input = ctk.CTkEntry(
+#             master=self,
+#             textvariable=self.fullName,
+#             text_color='white',
+#             fg_color=GREY,
+#             border_color=GREY
+#         )
+#         self.fullName_input.grid(row=2, column=0, ipady=5, sticky='w', pady=(0, 30))
+
+#         # Age
+#         self.age = ctk.StringVar()
+#         self.age_label = ctk.CTkLabel(
+#             master=self,
+#             text='Age',
+#             font=('Aria', 14),
+#             text_color=CYAN
+#         ).grid(row=1, column=1, sticky='w')
+#         self.age_input = ctk.CTkEntry(
+#             master=self,
+#             textvariable=self.age,
+#             text_color='white',
+#             fg_color=GREY,
+#             border_color=GREY
+#         )
+#         self.age_input.grid(row=2, column=1, ipady=5, sticky='w', pady=(0, 30))
