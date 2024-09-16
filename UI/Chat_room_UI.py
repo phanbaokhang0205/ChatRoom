@@ -366,25 +366,7 @@ class InputFrame(ctk.CTkFrame):
             # self.display_like()
         except OSError as e:
             print(e)
-    
-    # def display_like(self):
-    #     frame = ctk.CTkFrame(
-    #         master=msgTextFrame,
-    #         corner_radius=10,
-    #         fg_color='white'
-    #     )
-    #     frame.pack(ipadx=5, ipady=5, pady=10, anchor=ctk.E, expand=True)
 
-    #     like_label = ctk.CTkLabel(
-    #         master=frame,
-    #         text='👍', 
-    #         font=('Arial', 30),  # Kích thước của biểu tượng
-    #         bg_color='white',
-    #     )
-    #     like_label.pack(ipadx=10, ipady=5, padx=10, pady=5, fill='both', expand=True)
-
-    #     msgTextFrame.update_idletasks()
-    #     msgTextFrame._parent_canvas.yview_moveto(1)
 
 class Icons_Of_Input(ctk.CTkFrame):
     def __init__(self, container):
