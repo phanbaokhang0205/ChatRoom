@@ -1,115 +1,34 @@
 import customtkinter as ctk
-from PIL import Image, ImageDraw, ImageOps
 
-WINDOW_WIDTH = 1700-600
-WINDOW_HEIGHT = 1111-500
-WINDOW_POSITION = '+350+100'
+class TableFrame(ctk.CTkFrame):
+    def __init__(self, container, data):
+        super().__init__(container)
 
-GREY = '#545252'
-CYAN = '#BCEEF9'
-CYAN2 = '#3BD9FC'
-BLACK = '#2B2B2B'
-LIGHT_BLACK = '#353535'
+        # Tạo bảng với dữ liệu từ 'data'
+        for i, row in enumerate(data):
+            for j, value in enumerate(row):
+                cell = ctk.CTkLabel(self, text=value, fg_color="grey", text_color="white")
+                cell.grid(row=i, column=j, padx=5, pady=5, ipadx=10, ipady=5, sticky="nsew")
 
-# 1: container
-
-
-class App(ctk.CTk):
-    def __init__(self):
-        super().__init__()
-
-        # config window
-        self.title("Chat room Server")
-        self.geometry(f'{WINDOW_WIDTH}x{WINDOW_HEIGHT}{WINDOW_POSITION}')
-        self.resizable(False, False)
-
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(0, weight=1)
+        # Đặt tỉ lệ kích thước cột cho cân đối
+        for j in range(len(data[0])):
+            self.columnconfigure(j, weight=1)
 
 
-class Container(ctk.CTkFrame):
-    def __init__(self, container):
-        super().__init__(container, width=WINDOW_WIDTH,
-                         height=WINDOW_HEIGHT, fg_color=LIGHT_BLACK, bg_color=LIGHT_BLACK)
-        self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=5)
-        self.rowconfigure(0,weight=1)
+# Tạo giao diện chính
+root = ctk.CTk()
+root.geometry("400x300")
 
-        self.grid(row=0, column=0, sticky='snew')
+# Dữ liệu mẫu để hiển thị trong bảng
+data = [
+    ["ID", "Name", "Age"],
+    ["1", "Alice", "24"],
+    ["2", "Bob", "30"],
+    ["3", "Charlie", "28"]
+]
 
+# Tạo và hiển thị bảng
+table_frame = TableFrame(root, data)
+table_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-
-
-# 1: Option Buttons Frame
-class Option_Buttons(ctk.CTkFrame):
-    def __init__(self, container):
-        super().__init__(container, fg_color='red')
-        self.columnconfigure(0, weight=1)
-
-        # Server Title
-        self.title = ctk.CTkLabel(
-            master=self,
-            text="Server",
-            font=("Arial", 60, 'bold')
-        )
-        self.title.grid(row=0,column=0, sticky='w')
-
-
-        self.grid(row=0, column=0, sticky='snew')
-
-
-
-# 2: Main Content Frame
-
-
-class Main_Content(ctk.CTkScrollableFrame):
-    def __init__(self, container):
-        super().__init__(container, fg_color='blue')
-
-        self.grid(row=0, column=1, sticky='snew')
-
-
-if __name__ == "__main__":
-    app = App()
-    container = Container(app)
-
-    button_frame = Option_Buttons(container)
-    main_content = Main_Content(container)
-
-    app.mainloop()
-
-
-
-# # Full name
-#         self.fullName = ctk.StringVar()
-#         self.fullName_label = ctk.CTkLabel(
-#             master=self,
-#             text='Full name',
-#             font=('Aria', 14),
-#             text_color=CYAN
-#         ).grid(row=1, column=0, sticky='w')
-#         self.fullName_input = ctk.CTkEntry(
-#             master=self,
-#             textvariable=self.fullName,
-#             text_color='white',
-#             fg_color=GREY,
-#             border_color=GREY
-#         )
-#         self.fullName_input.grid(row=2, column=0, ipady=5, sticky='w', pady=(0, 30))
-
-#         # Age
-#         self.age = ctk.StringVar()
-#         self.age_label = ctk.CTkLabel(
-#             master=self,
-#             text='Age',
-#             font=('Aria', 14),
-#             text_color=CYAN
-#         ).grid(row=1, column=1, sticky='w')
-#         self.age_input = ctk.CTkEntry(
-#             master=self,
-#             textvariable=self.age,
-#             text_color='white',
-#             fg_color=GREY,
-#             border_color=GREY
-#         )
-#         self.age_input.grid(row=2, column=1, ipady=5, sticky='w', pady=(0, 30))
+root.mainloop()
