@@ -31,8 +31,6 @@ class App(ctk.CTk):
         self.rowconfigure(0, weight=1)
 
 # 2: Left Frame: Login Image
-
-
 class LeftFrame(ctk.CTkFrame):
     def __init__(self, container):
         super().__init__(container, bg_color=LIGHT_BLACK,
@@ -69,17 +67,17 @@ class RightFrame(ctk.CTkFrame):
         # Title
         self.login_title = ctk.CTkLabel(
             master=self,
-            text='Register',
-            font=('Aria', 60, 'bold'),
+            text='REGISTER',
+            font=('Aria', 40, 'bold'),
             text_color=CYAN
-        ).grid(row=0, column=0, sticky='w', columnspan=2, pady=(80,40))
+        ).grid(row=0, column=0, sticky='w', columnspan=2, pady=(40,20))
 
-        # user or email
+        # Full name
         self.userValue = ctk.StringVar()
 
         self.user_label = ctk.CTkLabel(
             master=self,
-            text='User or Email',
+            text='Full Name',
             font=('Aria', 14),
             text_color=CYAN
         ).grid(row=1, column=0, sticky='w')
@@ -89,7 +87,41 @@ class RightFrame(ctk.CTkFrame):
             text_color='white',
             fg_color=GREY,
             border_color=GREY
-        ).grid(row=2, column=0, columnspan=2, sticky='ew', ipady=10, padx=(0, 40), pady=(0,40))
+        ).grid(row=2, column=0, columnspan=2, sticky='ew', ipady=10, padx=(0, 40), pady=(0,10))
+
+        # Age
+        self.userValue = ctk.StringVar()
+
+        self.user_label = ctk.CTkLabel(
+            master=self,
+            text='Age',
+            font=('Aria', 14),
+            text_color=CYAN
+        ).grid(row=3, column=0, sticky='w')
+        self.user_input = ctk.CTkEntry(
+            master=self,
+            textvariable=self.userValue,
+            text_color='white',
+            fg_color=GREY,
+            border_color=GREY
+        ).grid(row=4, column=0, columnspan=2, sticky='ew', ipady=10, padx=(0, 40), pady=(0,10))
+
+        # user or email
+        self.userValue = ctk.StringVar()
+
+        self.user_label = ctk.CTkLabel(
+            master=self,
+            text='User or Email',
+            font=('Aria', 14),
+            text_color=CYAN
+        ).grid(row=5, column=0, sticky='w')
+        self.user_input = ctk.CTkEntry(
+            master=self,
+            textvariable=self.userValue,
+            text_color='white',
+            fg_color=GREY,
+            border_color=GREY
+        ).grid(row=6, column=0, columnspan=2, sticky='ew', ipady=10, padx=(0, 40), pady=(0,10))
 
         # password
         self.passValue = ctk.StringVar()
@@ -99,7 +131,7 @@ class RightFrame(ctk.CTkFrame):
             text='Password',
             font=('Aria', 14),
             text_color=CYAN
-        ).grid(row=3, column=0, sticky='w')
+        ).grid(row=7, column=0, sticky='w')
 
         self.pass_input = ctk.CTkEntry(
             master=self,
@@ -108,7 +140,7 @@ class RightFrame(ctk.CTkFrame):
             fg_color=GREY,
             border_color=GREY,
             show='*'
-        ).grid(row=4, column=0, columnspan=2, sticky='ew', ipady=10, padx=(0, 40), pady=(0, 40))
+        ).grid(row=8, column=0, columnspan=2, sticky='ew', ipady=10, padx=(0, 40), pady=(0, 10))
 
         # password again
         self.pass_againValue = ctk.StringVar()
@@ -118,7 +150,7 @@ class RightFrame(ctk.CTkFrame):
             text='Password Again',
             font=('Aria', 14),
             text_color=CYAN
-        ).grid(row=5, column=0, sticky='w')
+        ).grid(row=9, column=0, sticky='w')
 
         self.pass_input = ctk.CTkEntry(
             master=self,
@@ -127,7 +159,7 @@ class RightFrame(ctk.CTkFrame):
             fg_color=GREY,
             border_color=GREY,
             show='*'
-        ).grid(row=6, column=0, columnspan=2, sticky='ew', ipady=10, padx=(0, 40), pady=(0, 40))
+        ).grid(row=10, column=0, columnspan=2, sticky='ew', ipady=10, padx=(0, 40), pady=(0, 20))
 
         # register
         self.register_btn = ctk.CTkButton(
@@ -138,7 +170,7 @@ class RightFrame(ctk.CTkFrame):
             fg_color=CYAN,
             cursor="hand2",
 
-        ).grid(row=7, column=0, sticky='w', )
+        ).grid(row=11, column=0, sticky='w', )
 
         self.grid(row=0, column=1, sticky='snew')
 

@@ -73,7 +73,7 @@ class RightFrame(ctk.CTkFrame):
         # Title
         self.login_title = ctk.CTkLabel(
             master=self,
-            text='Login',
+            text='LOGIN',
             font=('Aria', 60, 'bold'),
             text_color=CYAN
         ).grid(row=0, column=0, sticky='w', columnspan=2, pady=(120,40))

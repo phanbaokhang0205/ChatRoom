@@ -1,8 +1,13 @@
 import customtkinter as ctk
 from PIL import Image, ImageDraw, ImageOps
+import socket
+import threading
 
-WINDOW_WIDTH = 1700-600
-WINDW_HEIGHT = 1111-500
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.connect(('127.0.0.1', 6543))
+
+WINDOW_WIDTH = 1700 - 600
+WINDOW_HEIGHT = 1111 - 500
 WINDOW_POSITION = '+350+100'
 
 GREY = '#545252'
@@ -10,30 +15,80 @@ CYAN = '#BCEEF9'
 BLACK = '#2B2B2B'
 LIGHT_BLACK = '#353535'
 
-"""
-Hàm làm tròn hình ảnh, Em Huy có tìm được cách làm tròn nào 
-thì thay giúp e Khang với nghee...
-"""
+def ask_nickname():
+    global nickname
+    input_dialog = ctk.CTkInputDialog(
+        title="Nickname",
+        text="Please choose a nickname"
+    )
+    input_dialog.geometry('300x200+850+450')
 
+    nickname = input_dialog.get_input()
+    if nickname:
+        receive_thread = threading.Thread(target=receive)
+        receive_thread.start()
+
+def receive():
+    while True:
+        try:
+            message = client.recv(1024).decode('utf-8')
+            if message == 'NAME':
+                client.send(nickname.encode('utf-8'))
+            elif message:
+                if message == 'Connected to the server!' or message.endswith('joined the chat!'):
+                    addNote(message)
+                else:
+                    if message.startswith(f'{nickname}: '):
+                        addMessage(message, ctk.E) 
+                    else:
+                        addMessage(message, ctk.W)
+        except Exception as e:
+            print(f'An error occurred: {e}')
+            client.close()
+            break
+
+def addNote(msg):
+    label = ctk.CTkLabel(
+        master=msgTextFrame,
+        text=msg,
+        justify='center',
+        text_color='#999999'
+    )
+    label.pack(ipadx=5, ipady=5, anchor=ctk.CENTER, expand=True)
+    msgTextFrame.update_idletasks()
+    msgTextFrame._parent_canvas.yview_moveto(1)
+
+def addMessage(msg, anchor):
+    frame = ctk.CTkFrame(
+        master=msgTextFrame,
+        corner_radius=10,  
+        fg_color='white'  
+    )
+    frame.pack(ipadx=5, ipady=5, pady=10, anchor=anchor, expand=True)
+
+    label = ctk.CTkLabel(
+        master=frame,
+        text=msg,
+        wraplength=300,
+        justify='right',
+        bg_color='white',
+    )
+    label.pack(ipadx=5, ipady=5, padx=5, pady=5, fill='both', expand=True)
+
+    msgTextFrame.update_idletasks()
+    msgTextFrame._parent_canvas.yview_moveto(1)
 
 def create_rounded_image(image_path, size, upscale_factor=2):
-    # Mở ảnh gốc
     image = Image.open(image_path).convert("RGBA")
-
-    # Thay đổi kích thước ảnh với bộ lọc LANCZOS để giữ chất lượng cao
     upscale_size = (size * upscale_factor, size * upscale_factor)
     image = image.resize(upscale_size, Image.LANCZOS)
 
-    # Tạo một mặt nạ hình tròn với độ phân giải cao hơn
     mask = Image.new("L", upscale_size, 0)
     draw = ImageDraw.Draw(mask)
     draw.ellipse((0, 0, upscale_size[0], upscale_size[1]), fill=255)
 
-    # Áp dụng mặt nạ vào ảnh để bo tròn
     rounded_image = ImageOps.fit(image, upscale_size, centering=(0.5, 0.5))
     rounded_image.putalpha(mask)
-
-    # Giảm kích thước ảnh về kích thước yêu cầu ban đầu
     rounded_image = rounded_image.resize((size, size), Image.LANCZOS)
 
     return rounded_image
@@ -47,7 +102,7 @@ class App(ctk.CTk):
 
         # config window
         self.title("Chat room")
-        self.geometry(f'{WINDOW_WIDTH}x{WINDW_HEIGHT}{WINDOW_POSITION}')
+        self.geometry(f'{WINDOW_WIDTH}x{WINDOW_HEIGHT}{WINDOW_POSITION}')
         self.resizable(False, False)
 
         # Chia ra 3 Cột 1 Dòng
@@ -112,7 +167,6 @@ class LeftTitle(ctk.CTkFrame):
 
 # 2.1.1: Frame user
 
-
 class UserFrame(ctk.CTkFrame):
     def __init__(self, container, user_img, user_name, content_msg, row):
         super().__init__(container, fg_color=BLACK)
@@ -153,8 +207,6 @@ class UserFrame(ctk.CTkFrame):
         self.grid(row=row, column=0, sticky='snew', columnspan=2)
 
 # 3: Frame o giua.
-
-
 class CenterFrame(ctk.CTkFrame):
     def __init__(self, container):
         super().__init__(container,bg_color=BLACK, fg_color=BLACK, corner_radius=0)
@@ -275,20 +327,64 @@ class InputFrame(ctk.CTkFrame):
         )
         self.input.grid(column=1, row=0, sticky='ew')
 
+        # Gui bang nut enter
+        self.input.bind("<Return>", self.enter_pressed)
+
         # send button
-        send_src = Image.open('icons/send.png')
-        send_icons = ctk.CTkImage(send_src)
-        self.send_btn = ctk.CTkButton(
+        like_src = Image.open('icons/like.png')
+        like_icons = ctk.CTkImage(like_src)
+
+        self.like_btn = ctk.CTkButton(
             master=self,
             text='',
-            image=send_icons,
+            image=like_icons,
             fg_color=LIGHT_BLACK,
             width=0,
+            command=self.send_like
         )
-        self.send_btn.grid(column=2, row=0)
+        self.like_btn.grid(column=2, row=0)
 
         self.grid(row=2, column=0, sticky='snew', padx=0)
+    
+    # Gui tin nhan thong thuong
+    def write(self):
+        try:
+            message = f'{nickname}: {self.message.get()}'
+            client.send(message.encode('utf-8'))
+            self.input.delete(0, ctk.END)
+        except OSError as e:
+            print(f"An error occurred: {e}")
 
+    def enter_pressed(seft, event):
+        seft.write()
+
+    # Gui icon like
+    def send_like(self):
+        try:
+            message = f'{nickname}: 👍'
+            client.send(message.encode('utf-8'))
+            # self.display_like()
+        except OSError as e:
+            print(e)
+    
+    # def display_like(self):
+    #     frame = ctk.CTkFrame(
+    #         master=msgTextFrame,
+    #         corner_radius=10,
+    #         fg_color='white'
+    #     )
+    #     frame.pack(ipadx=5, ipady=5, pady=10, anchor=ctk.E, expand=True)
+
+    #     like_label = ctk.CTkLabel(
+    #         master=frame,
+    #         text='👍', 
+    #         font=('Arial', 30),  # Kích thước của biểu tượng
+    #         bg_color='white',
+    #     )
+    #     like_label.pack(ipadx=10, ipady=5, padx=10, pady=5, fill='both', expand=True)
+
+    #     msgTextFrame.update_idletasks()
+    #     msgTextFrame._parent_canvas.yview_moveto(1)
 
 class Icons_Of_Input(ctk.CTkFrame):
     def __init__(self, container):
@@ -365,11 +461,6 @@ class RightFrame(ctk.CTkFrame):
         # icons
         self.icons = Icon_of_Right(self)
         self.icons.pack(pady=10)
-
-        # gradient_image1 = PhotoImage(file='img/btn_1.png')
-        # gradient_image2 = PhotoImage(file='img/btn_2.png')
-        # gradient_image3 = PhotoImage(file='img/btn_3.png')
-        # gradient_image4 = PhotoImage(file='img/btn_4.png')
 
         # The buttons
         self.change_emoji = ctk.CTkButton(
@@ -448,59 +539,13 @@ users = [
     },
     {
         'img': 'img/khang.JPG',
-        'name': f'Phan Bao Khang 1',
-        'content': 'This is content...'
-    },
-    {
-        'img': 'img/khang.JPG',
-        'name': f'Phan Bao Khang 2',
-        'content': 'This is content...'
-    }, {
-        'img': 'img/khang.JPG',
-        'name': f'Phan Bao Khang 1',
-        'content': 'This is content...'
-    },
-    {
-        'img': 'img/khang.JPG',
-        'name': f'Phan Bao Khang 2',
-        'content': 'This is content...'
-    }, {
-        'img': 'img/khang.JPG',
-        'name': f'Phan Bao Khang 1',
-        'content': 'This is content...'
-    },
-    {
-        'img': 'img/khang.JPG',
-        'name': f'Phan Bao Khang 2',
-        'content': 'This is content...'
-    }, {
-        'img': 'img/khang.JPG',
-        'name': f'Phan Bao Khang 1',
-        'content': 'This is content...'
-    },
-    {
-        'img': 'img/khang.JPG',
-        'name': f'Phan Bao Khang 2',
-        'content': 'This is content...'
-    }, {
-        'img': 'img/khang.JPG',
-        'name': f'Phan Bao Khang 1',
-        'content': 'This is content...'
-    },
-    {
-        'img': 'img/khang.JPG',
-        'name': f'Phan Bao Khang 2',
-        'content': 'This is content...'
-    },
-    {
-        'img': 'img/khang.JPG',
-        'name': f'Phan Bao Khang 3',
+        'name': 'Phan Bao Khang',
         'content': 'This is content...'
     }
 ]
 
-i = 3
-
+# Chay chuong trinh chinh
+i = 2
 if __name__ == "__main__":
     app = App()
 
@@ -519,9 +564,11 @@ if __name__ == "__main__":
 
     centerFrame = CenterFrame(app)
     centerTitle = CenterTitle(centerFrame)
+    global msgTextFrame
     msgTextFrame = MessageTextFrame(centerFrame)
     inputFrame = InputFrame(centerFrame)
 
     rightFrame = RightFrame(app)
 
+    app.after(100, ask_nickname)
     app.mainloop()
