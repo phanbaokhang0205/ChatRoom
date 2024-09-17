@@ -68,7 +68,7 @@ def addMessage(msg, anchor):
         fg_color='white'  
     )
     frame.pack(ipadx=5, ipady=5, pady=10, anchor=anchor, expand=True)
-
+    
     label = ctk.CTkLabel(
         master=frame,
         text=msg,
@@ -296,7 +296,7 @@ class Icons_of_CenterTitle(ctk.CTkFrame):
 class MessageTextFrame(ctk.CTkScrollableFrame):
     def __init__(self, container):
         super().__init__(container, fg_color=LIGHT_BLACK, corner_radius=0)
-
+        
         self.grid(row=1, column=0, sticky='snew')
 
 

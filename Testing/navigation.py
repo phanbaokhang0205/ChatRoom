@@ -1,41 +1,18 @@
-import tkinter as tk
-from tkinter import ttk
-from tkinter.messagebox import showerror, showwarning, showinfo
-
-# create the root window
-root = tk.Tk()
-root.title('Tkinter MessageBox')
-root.resizable(False, False)
-root.geometry('300x150')
-
-#
-options = {'fill': 'both', 'padx': 10, 'pady': 10, 'ipadx': 5}
-
-ttk.Button(
-    root,
-    text='Show an error message',
-    command=lambda: showerror(
-        title='Error',
-        message='This is an error message.')
-).pack(**options)
-
-ttk.Button(
-    root,
-    text='Show an information message',
-    command=lambda: showinfo(
-        title='Information',
-        message='This is an information message.')
-).pack(**options)
+import customtkinter as ctk
+from PIL import Image
 
 
-ttk.Button(
-    root,
-    text='Show an warning message',
-    command=lambda: showwarning(
-        title='Warning',
-        message='This is a warning message.')
-).pack(**options)
+root = ctk.CTk()
+root.geometry("400x400")
 
+msg = ctk.CTkLabel(
+    master=root,
+    text="Helloo"
+).pack(ipadx=5, ipady=5, pady=10, anchor=ctk.W, side=ctk.RIGHT)
 
-# run the app
+emoji = ctk.CTkButton(
+    master=root,
+    text="emoji"
+).pack()
+
 root.mainloop()
