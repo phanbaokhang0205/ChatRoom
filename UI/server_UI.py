@@ -96,7 +96,6 @@ def show_frame(frame_to_show, button_to_config):
 
 # 1: container
 
-
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()

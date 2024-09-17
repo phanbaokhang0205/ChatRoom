@@ -3,6 +3,9 @@ from PIL import Image, ImageDraw, ImageOps
 import socket
 import threading
 
+import tkinter as tk
+from tkinter import filedialog
+
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(('127.0.0.1', 6543))
 
@@ -70,7 +73,7 @@ def addMessage(msg, anchor):
         master=frame,
         text=msg,
         wraplength=300,
-        justify='right',
+        justify='left',
         bg_color='white',
     )
     label.pack(ipadx=5, ipady=5, padx=5, pady=5, fill='both', expand=True)
@@ -92,8 +95,6 @@ def create_rounded_image(image_path, size, upscale_factor=2):
     rounded_image = rounded_image.resize((size, size), Image.LANCZOS)
 
     return rounded_image
-
-
 
 # 1: container
 class App(ctk.CTk):
@@ -291,7 +292,6 @@ class Icons_of_CenterTitle(ctk.CTkFrame):
             width=43
         ).pack(anchor='e')
 
-
 # 3.1: Frame chua doan tin nhan.
 class MessageTextFrame(ctk.CTkScrollableFrame):
     def __init__(self, container):
@@ -367,7 +367,6 @@ class InputFrame(ctk.CTkFrame):
         except OSError as e:
             print(e)
 
-
 class Icons_Of_Input(ctk.CTkFrame):
     def __init__(self, container):
         super().__init__(container, fg_color=LIGHT_BLACK, bg_color=LIGHT_BLACK)
@@ -388,8 +387,10 @@ class Icons_Of_Input(ctk.CTkFrame):
             text='',
             bg_color=LIGHT_BLACK,
             fg_color=LIGHT_BLACK,
-            width=5
+            width=5,
+            command=self.send_file
         ).grid(row=0, column=0)
+
         self.mic_icon = ctk.CTkButton(
             master=self,
             image=mic_icon,
@@ -398,6 +399,7 @@ class Icons_Of_Input(ctk.CTkFrame):
             fg_color=LIGHT_BLACK,
             width=5
         ).grid(row=0, column=1)
+
         self.eye_icon = ctk.CTkButton(
             master=self,
             image=eye_icon,
@@ -407,6 +409,19 @@ class Icons_Of_Input(ctk.CTkFrame):
             width=5
         ).grid(row=0, column=2)
 
+    def send_file(event=None):
+        file_path = filedialog.askopenfilename()  # Chọn file
+        if file_path:
+            with open(file_path, 'rb') as file:
+                # file_data = file.read()
+                file_name = file_path.split('/')[-1]  # Lấy tên file
+
+                # Gửi thông tin về file cho server với nickname và tên file
+                try:
+                    message = f'{nickname}: {file_name}'
+                    client.send(message.encode('utf-8'))
+                except OSError as e:
+                    print(e)
 
 # 4: Frame ben phai
 class RightFrame(ctk.CTkFrame):
@@ -514,11 +529,6 @@ class Icon_of_Right(ctk.CTkFrame):
 
 
 users = [
-    {
-        'img': 'img/khang.JPG',
-        'name': 'Phan Bao Khang',
-        'content': 'This is content...'
-    },
     {
         'img': 'img/khang.JPG',
         'name': 'Phan Bao Khang',
