@@ -21,9 +21,16 @@ def broadcast(message):
 def handle(client):
     while True:
         try:
-            message = client.recv(1024)
+            # Nhận thông điệp từ client
+            message = client.recv(4096)
             if not message:
                 break
+            # # Phân biệt giữa văn bản và tệp tin
+            # if message.startswith(b'FILE:'):
+            #     file_data = message[5:]  # Loại bỏ tiền tố FILE:
+            #     print("Received a file!")
+            #     broadcast(b'FILE:' + file_data)
+            # else:
             print(f"Message from {message.decode('utf-8')}")
             broadcast(message)
         except:
