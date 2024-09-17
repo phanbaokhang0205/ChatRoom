@@ -12,6 +12,25 @@ BLACK = '#2B2B2B'
 LIGHT_BLACK = '#353535'
 
 
+users = [
+    {
+        'fullName': 'phan bao khang',
+        'age': 20,
+        'email': 'phanbaokhang0205@gmail.com',
+        'password': '123@321'
+    }
+]
+
+
+def register(fullName, age, email, password):
+    new_user = {
+        'fullName': fullName,
+        'age': age,
+        'email': email,
+        'password': password
+    }
+    users.append(new_user)
+    print(users)
 
 # 1: container
 
@@ -22,6 +41,7 @@ class App(ctk.CTk):
 
         # config window
         self.title("Chat room")
+        # self.geometry("{0}x{1}+0+0".format(self.winfo_screenwidth(), self.winfo_screenheight()))
         self.geometry(f'{WINDOW_WIDTH}x{WINDOW_HEIGHT}{WINDOW_POSITION}')
         self.resizable(False, False)
 
@@ -49,7 +69,7 @@ class LeftFrame(ctk.CTkFrame):
             image=image_photo,
             fg_color=LIGHT_BLACK,
 
-        ).grid(row=0, column=0, sticky='snew',padx=40, pady=40)
+        ).grid(row=0, column=0, sticky='snew', padx=40, pady=40)
 
         self.grid(row=0, column=0, sticky='snew')
 
@@ -152,7 +172,7 @@ class RightFrame(ctk.CTkFrame):
             text_color=CYAN
         ).grid(row=9, column=0, sticky='w')
 
-        self.pass_input = ctk.CTkEntry(
+        self.pass_agian_input = ctk.CTkEntry(
             master=self,
             textvariable=self.pass_againValue,
             text_color='white',
@@ -165,10 +185,16 @@ class RightFrame(ctk.CTkFrame):
         self.register_btn = ctk.CTkButton(
             master=self,
             text='Register',
-            font=('Aria',14,'bold'),
+            font=('Aria', 14, 'bold'),
             text_color=BLACK,
             fg_color=CYAN,
             cursor="hand2",
+            command=lambda: register(
+                fullName=self.fullName_input.get(),
+                age=self.age_input.get(),
+                email=self.user_input.get(),
+                password=self.pass_input.get()
+            )
 
         ).grid(row=11, column=0, sticky='w', )
 

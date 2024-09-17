@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from PIL import Image, ImageDraw, ImageOps
+from register_UI import users
 
 WINDOW_WIDTH = 1700-600
 WINDOW_HEIGHT = 1111-500
@@ -11,7 +12,8 @@ CYAN2 = '#3BD9FC'
 BLACK = '#2B2B2B'
 LIGHT_BLACK = '#353535'
 
-
+def printUsers():
+    print(users)
 
 # 1: container
 
@@ -144,6 +146,7 @@ class RightFrame(ctk.CTkFrame):
             text_color=BLACK,
             fg_color=CYAN,
             cursor="hand2",
+            command=printUsers,
 
         ).grid(row=5, column=1, sticky='e', padx=(0,80))
 

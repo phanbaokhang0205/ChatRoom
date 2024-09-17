@@ -423,7 +423,6 @@ class Icons_Of_Input(ctk.CTkFrame):
                 except OSError as e:
                     print(e)
 
-
 # 4: Frame ben phai
 class RightFrame(ctk.CTkFrame):
     def __init__(self, container):
