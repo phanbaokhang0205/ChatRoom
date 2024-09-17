@@ -1,7 +1,7 @@
 import customtkinter as ctk
 import threading
 import socket
-
+from PIL import Image, ImageDraw, ImageOps
 
 WINDOW_WIDTH = 1700-600
 WINDOW_HEIGHT = 1111-500
@@ -43,7 +43,6 @@ def handle(client):
             message = client.recv(1024)
             if not message:
                 break
-            # print(f"Message from {message.decode('utf-8')}")
             addNotification(f"Message from {message.decode('utf-8')}")
             broadcast(message)
         except:
@@ -196,7 +195,7 @@ class Option_Buttons(ctk.CTkFrame):
 class option_button_item(ctk.CTkButton):
     def __init__(self, container, commands, text, fg=GREY, tcl='white'):
         super().__init__(container, text=text, font=('Aria', 14, 'bold'),
-                         fg_color=fg, text_color=tcl, height=50, corner_radius=0, cursor="hand2", border_color=CYAN, command=commands)
+                         fg_color=fg, text_color=tcl, height=50, corner_radius=0, cursor="hand2", border_color=CYAN, command=commands, hover_color=CYAN)
 
 
 # ----------------------Noti Frame----------------------------------------------------
@@ -207,11 +206,33 @@ class Notification_Frame(ctk.CTkScrollableFrame):
         self.grid(row=0, column=1, sticky='snew', padx=(0, 30))
 
 
-class Noti_Item(ctk.CTkLabel):
+class Noti_Item(ctk.CTkFrame):
     def __init__(self, container, text):
-        super().__init__(container, text=text)
+        super().__init__(container, fg_color=CYAN2, height=35)
 
-        self.pack(padx=20, pady=20)
+        self.columnconfigure(0, minsize=50)
+        self.columnconfigure(1, minsize=200)
+
+        noti_src = ctk.CTkImage(Image.open("icons/chat.png")) if text.startswith(
+            f"Message from ") else ctk.CTkImage(Image.open("icons/noti.png"))
+        self.noti_icon = ctk.CTkLabel(
+            master=self,
+            text='',
+            image=noti_src,
+            height=35,
+            fg_color=BLACK
+        )
+        self.noti_icon.grid(row=0, column=0, sticky='snew')
+        self.noti = ctk.CTkLabel(
+            master=self,
+            text=text,
+            height=35,
+            wraplength=600,
+            anchor='w'
+        )
+        self.noti.grid(row=0, column=1, sticky='w', padx=10)
+
+        self.pack(padx=20, pady=20, ipadx=10, anchor='w')
 # ----------------------User Frame----------------------------------------------------
 
 
@@ -422,6 +443,5 @@ if __name__ == "__main__":
     # print('Server is listening...')
     threading.Thread(target=receive, daemon=True).start()
     addNotification('Server is listening...')
-
 
     app.mainloop()

@@ -1,34 +1,41 @@
-import customtkinter as ctk
+import tkinter as tk
+from tkinter import ttk
+from tkinter.messagebox import showerror, showwarning, showinfo
 
-class TableFrame(ctk.CTkFrame):
-    def __init__(self, container, data):
-        super().__init__(container)
+# create the root window
+root = tk.Tk()
+root.title('Tkinter MessageBox')
+root.resizable(False, False)
+root.geometry('300x150')
 
-        # Tạo bảng với dữ liệu từ 'data'
-        for i, row in enumerate(data):
-            for j, value in enumerate(row):
-                cell = ctk.CTkLabel(self, text=value, fg_color="grey", text_color="white")
-                cell.grid(row=i, column=j, padx=5, pady=5, ipadx=10, ipady=5, sticky="nsew")
+#
+options = {'fill': 'both', 'padx': 10, 'pady': 10, 'ipadx': 5}
 
-        # Đặt tỉ lệ kích thước cột cho cân đối
-        for j in range(len(data[0])):
-            self.columnconfigure(j, weight=1)
+ttk.Button(
+    root,
+    text='Show an error message',
+    command=lambda: showerror(
+        title='Error',
+        message='This is an error message.')
+).pack(**options)
+
+ttk.Button(
+    root,
+    text='Show an information message',
+    command=lambda: showinfo(
+        title='Information',
+        message='This is an information message.')
+).pack(**options)
 
 
-# Tạo giao diện chính
-root = ctk.CTk()
-root.geometry("400x300")
+ttk.Button(
+    root,
+    text='Show an warning message',
+    command=lambda: showwarning(
+        title='Warning',
+        message='This is a warning message.')
+).pack(**options)
 
-# Dữ liệu mẫu để hiển thị trong bảng
-data = [
-    ["ID", "Name", "Age"],
-    ["1", "Alice", "24"],
-    ["2", "Bob", "30"],
-    ["3", "Charlie", "28"]
-]
 
-# Tạo và hiển thị bảng
-table_frame = TableFrame(root, data)
-table_frame.pack(fill="both", expand=True, padx=10, pady=10)
-
+# run the app
 root.mainloop()
