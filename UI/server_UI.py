@@ -33,19 +33,34 @@ def broadcast(message):
     for client in clients:
         try:
             client.send(message)
-        except:
-            clients.remove(client)
+        except ConnectionResetError:
+            # Nếu client đã ngắt kết nối, loại bỏ khỏi danh sách
+            if client in clients:
+                clients.remove(client)
+            print(f"Client {client} disconnected.")
 
 
 def handle(client):
     while True:
         try:
-            message = client.recv(1024)
+            message = client.recv(4096)
             if not message:
                 break
-            addNotification(f"Message from {message.decode('utf-8')}")
-            broadcast(message)
-        except:
+            if message.startswith(b'FILE:'):
+                file_size = int(message[5:].decode())
+                file_data = b''
+                while len(file_data) < file_size:
+                    packet = client.recv(4096)
+                    if not packet:
+                        break
+                    file_data += packet
+                broadcast(b'FILE:' + file_data)
+
+            else:
+                addNotification(f"Message from {message.decode('utf-8')}")
+                broadcast(message)
+        except Exception as e:
+            print(f'Error: {e}')
             break
 
     # Remove client from lists and notify others
@@ -318,72 +333,7 @@ users = [
         'name': 'Le Van Quoc Huy',
         'age': '20',
         'email': 'quochuydz@gmail.com',
-    },
-    {
-        'name': 'Le Van Quoc Huy',
-        'age': '20',
-        'email': 'quochuydz@gmail.com',
-    },
-    {
-        'name': 'Le Van Quoc Huy',
-        'age': '20',
-        'email': 'quochuydz@gmail.com',
-    },
-    {
-        'name': 'Le Van Quoc Huy',
-        'age': '20',
-        'email': 'quochuydz@gmail.com',
-    },
-    {
-        'name': 'Le Van Quoc Huy',
-        'age': '20',
-        'email': 'quochuydz@gmail.com',
-    },
-    {
-        'name': 'Le Van Quoc Huy',
-        'age': '20',
-        'email': 'quochuydz@gmail.com',
-    },
-    {
-        'name': 'Le Van Quoc Huy',
-        'age': '20',
-        'email': 'quochuydz@gmail.com',
-    },
-    {
-        'name': 'Le Van Quoc Huy',
-        'age': '20',
-        'email': 'quochuydz@gmail.com',
-    },
-    {
-        'name': 'Phan Bao Khang',
-        'age': '20',
-        'email': 'phanbaokhang0205@gmail.com',
-    },
-    {
-        'name': 'Le Van Quoc Huy',
-        'age': '20',
-        'email': 'quochuydz@gmail.com',
-    },
-    {
-        'name': 'Le Van Quoc Huy',
-        'age': '20',
-        'email': 'quochuydz@gmail.com',
-    },
-    {
-        'name': 'Phan Bao Khang',
-        'age': '20',
-        'email': 'phanbaokhang0205@gmail.com',
-    },
-    {
-        'name': 'Le Van Quoc Huy',
-        'age': '20',
-        'email': 'quochuydz@gmail.com',
-    },
-    {
-        'name': 'Le Van Quoc Huy',
-        'age': '20',
-        'email': 'quochuydz@gmail.com',
-    },
+    }
 ]
 
 
