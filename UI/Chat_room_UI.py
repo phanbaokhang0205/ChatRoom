@@ -34,21 +34,58 @@ def ask_nickname():
 def receive():
     while True:
         try:
-            message = client.recv(1024).decode('utf-8')
-            if message == 'NAME':
+            # Nhận dữ liệu từ server
+            message = client.recv(4096)  # Tăng kích thước buffer để nhận file ảnh lớn hơn
+            
+            if not message:
+                break  # Kết thúc khi không còn dữ liệu
+
+            # Kiểm tra nếu tin nhắn yêu cầu tên (NAME)
+            if message.startswith(b'NAME'):
                 client.send(nickname.encode('utf-8'))
-            elif message:
-                if message == 'Connected to the server!' or message.endswith('joined the chat!'):
-                    addNote(message)
+            
+            # Kiểm tra nếu là file (dữ liệu ảnh)
+            # Kiểm tra nếu là file (dữ liệu ảnh)
+            elif message.startswith(b'FILE:'):
+                # Nhận kích thước tệp tin
+                file_size = int(message[5:].decode('utf-8'))
+                file_data = b''
+                
+                # Nhận dữ liệu tệp tin
+                while len(file_data) < file_size:
+                    packet = client.recv(4096)
+                    if not packet:
+                        break
+                    file_data += packet
+                
+                # Lưu file ảnh vào máy
+                image_filename = f'{nickname}_received_image.png'
+                with open(image_filename, 'wb') as f:
+                    f.write(file_data)
+
+                # Kiểm tra nếu là tin nhắn của chính bạn hoặc người khác
+                if message.startswith(f'{nickname}:'.encode('utf-8')):
+                    add_image_message(f'{nickname}:', image_filename, ctk.E)  # Tin nhắn của chính bạn
                 else:
-                    if message.startswith(f'{nickname}: '):
-                        addMessage(message, ctk.E) 
+                    add_image_message(f'{nickname}:', image_filename, ctk.W)  # Tin nhắn của người khác
+            else:
+                try:
+                    decoded_message = message.decode('utf-8')  # Chỉ giải mã nếu chắc chắn là văn bản
+                    if decoded_message.endswith('joined the chat!') or decoded_message == 'Connected to the server!':
+                        addNote(decoded_message)
                     else:
-                        addMessage(message, ctk.W)
+                        if decoded_message.startswith(f'{nickname}: '):
+                            addMessage(decoded_message, ctk.E)  # Tin nhắn của chính bạn
+                        else:
+                            addMessage(decoded_message, ctk.W)  # Tin nhắn từ người khác
+                except UnicodeDecodeError:
+                    # Bắt lỗi nếu không thể giải mã được do nhận phải dữ liệu nhị phân
+                    print("Received non-text data, likely a file or corrupt message.")
         except Exception as e:
             print(f'An error occurred: {e}')
             client.close()
             break
+
 
 def addNote(msg):
     label = ctk.CTkLabel(
@@ -80,6 +117,42 @@ def addMessage(msg, anchor):
 
     msgTextFrame.update_idletasks()
     msgTextFrame._parent_canvas.yview_moveto(1)
+
+def add_image_message(msg, image_filename, anchor):
+    # Tạo frame để chứa tin nhắn ảnh
+    frame = ctk.CTkFrame(
+        master=msgTextFrame,
+        corner_radius=10,  
+        fg_color='white'
+    )
+    frame.pack(ipadx=5, ipady=5, pady=10, anchor=anchor, expand=True)
+    
+    # Hiển thị văn bản tin nhắn (nếu cần, ví dụ tên người gửi)
+    label = ctk.CTkLabel(
+        master=frame,
+        text=msg,
+        justify='left',
+        bg_color='white',
+    )
+    label.pack(ipadx=5, ipady=5, padx=5, pady=5, fill='both', expand=True)
+    
+    # Hiển thị ảnh từ file
+    img_src = Image.open(image_filename)
+    img_ctk = ctk.CTkImage(img_src, size=(100, 100))  # Tùy chỉnh kích thước ảnh
+    
+    image_label = ctk.CTkLabel(
+        master=frame,
+        image=img_ctk,
+        text=''  # Không cần text ở đây
+    )
+    image_label.pack(padx=5, pady=5)
+
+    # Cập nhật khung tin nhắn
+    msgTextFrame.update_idletasks()
+    msgTextFrame._parent_canvas.yview_moveto(1)
+
+
+
 
 def create_rounded_image(image_path, size, upscale_factor=2):
     image = Image.open(image_path).convert("RGBA")
@@ -226,7 +299,7 @@ class CenterTitle(ctk.CTkFrame):
         super().__init__(container, fg_color=BLACK, corner_radius=0)
 
         # avatar
-        avatar_src = create_rounded_image('img/khang.JPG', 50)
+        avatar_src = create_rounded_image('img/python.png', 50)
         new_img = ctk.CTkImage(dark_image=avatar_src, size=(50, 50))
 
         self.avatar = ctk.CTkLabel(
@@ -234,7 +307,7 @@ class CenterTitle(ctk.CTkFrame):
             text='',
             image=new_img,
         ).pack(anchor='w', side='left')
-        self.name_content = Name_Content(self, "Phan Bao Khang", 16)
+        self.name_content = Name_Content(self, "Nhóm Python - Tkinter", 16)
         self.name_content.pack(anchor='w', side='left', padx=(10, 0))
 
         # Phone & Video icons
@@ -271,7 +344,7 @@ class Icons_of_CenterTitle(ctk.CTkFrame):
         phone_icons = ctk.CTkImage(phone_src)
 
         # video call icon
-        video_src = Image.open("icons/video.png")
+        video_src = Image.open("icons/video-camera.png")
         video_icons = ctk.CTkImage(video_src)
 
         self.phone_icon = ctk.CTkButton(
@@ -373,17 +446,17 @@ class Icons_Of_Input(ctk.CTkFrame):
 
         self.rowconfigure(0, weight=1)
 
-        image_scr = Image.open("icons/image.png")
-        mic_scr = Image.open('icons/mic.png')
-        eye_scr = Image.open('icons/eye.png')
+        file_scr = Image.open("icons/file.png")
+        mic_scr = Image.open('icons/voice.png')
+        gallery_scr = Image.open('icons/gallery.png')
 
-        image_icon = ctk.CTkImage(image_scr)
+        file_icon = ctk.CTkImage(file_scr)
         mic_icon = ctk.CTkImage(mic_scr)
-        eye_icon = ctk.CTkImage(eye_scr)
+        gallery_icon = ctk.CTkImage(gallery_scr)
 
-        self.image_icon = ctk.CTkButton(
+        self.file_icon = ctk.CTkButton(
             master=self,
-            image=image_icon,
+            image=file_icon,
             text='',
             bg_color=LIGHT_BLACK,
             fg_color=LIGHT_BLACK,
@@ -400,14 +473,27 @@ class Icons_Of_Input(ctk.CTkFrame):
             width=5
         ).grid(row=0, column=1)
 
-        self.eye_icon = ctk.CTkButton(
+        self.gallery_icon = ctk.CTkButton(
             master=self,
-            image=eye_icon,
+            image=gallery_icon,
             text='',
             bg_color=LIGHT_BLACK,
             fg_color=LIGHT_BLACK,
-            width=5
+            width=5,
+            command=self.send_image
         ).grid(row=0, column=2)
+    
+    def send_image(self):
+        file_path = filedialog.askopenfilename()
+        if file_path:
+            try:
+                with open(file_path, 'rb') as f:
+                    file_data = f.read()  # Đọc file dưới dạng nhị phân
+                    file_size = len(file_data)
+                    client.send(f'FILE:{file_size}'.encode('utf-8'))  # Gửi kích thước tệp tin trước
+                    client.sendall(file_data)  # Gửi dữ liệu tệp tin
+            except Exception as e:
+                print(f'Error sending image: {e}')
 
     def send_file(event=None):
         file_path = filedialog.askopenfilename()  # Chọn file
@@ -430,7 +516,7 @@ class RightFrame(ctk.CTkFrame):
                          fg_color=LIGHT_BLACK, corner_radius=0)
 
         # avatar
-        avatar_src = create_rounded_image('img/khang.JPG', 60)
+        avatar_src = create_rounded_image('img/python.png', 60)
         new_img = ctk.CTkImage(dark_image=avatar_src, size=(60, 60))
 
         # Avatar
@@ -444,7 +530,7 @@ class RightFrame(ctk.CTkFrame):
         # Name & active
         self.name = ctk.CTkLabel(
             master=self,
-            text='Phan Bao Khang',
+            text='Nhóm Python - Tkinter',
             font=('Arial', 16, 'bold'),
             text_color='white'
         ).pack()
@@ -503,7 +589,7 @@ class Icon_of_Right(ctk.CTkFrame):
     def __init__(self, container):
         super().__init__(container, fg_color=LIGHT_BLACK, corner_radius=0)
 
-        volume_off = Image.open('icons/volume_off.png')
+        volume_off = Image.open('icons/mute.png')
         search = Image.open('icons/search.png')
 
         volume_icon = ctk.CTkImage(volume_off)
@@ -530,8 +616,8 @@ class Icon_of_Right(ctk.CTkFrame):
 
 users = [
     {
-        'img': 'img/khang.JPG',
-        'name': 'Phan Bao Khang',
+        'img': 'img/python.png',
+        'name': 'Nhóm Python - Tkinter',
         'content': 'This is content...'
     }
 ]
