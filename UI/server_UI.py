@@ -24,14 +24,13 @@ server.listen()
 clients = []
 nicknames = []
 
-
 def addNotification(notification):
     app.after(0, lambda: Noti_Item(noti_frame, notification))
-
 
 def broadcast(message):
     for client in clients:
         try:
+            
             client.send(message)
         except ConnectionResetError:
             # Nếu client đã ngắt kết nối, loại bỏ khỏi danh sách
@@ -43,36 +42,58 @@ def broadcast(message):
 def handle(client):
     while True:
         try:
+            # Nhận dữ liệu từ client
             message = client.recv(4096)
+            
             if not message:
                 break
-            if message.startswith(b'FILE:'):
-                file_size = int(message[5:].decode())
-                file_data = b''
-                while len(file_data) < file_size:
-                    packet = client.recv(4096)
-                    if not packet:
-                        break
-                    file_data += packet
-                broadcast(b'FILE:' + file_data)
+
+            # Kiểm tra nếu tin nhắn chứa 'IMG' để nhận dữ liệu ảnh
+            decoded_message = message.decode('utf-8', errors='ignore')
+            if 'IMG' in decoded_message:
+                sender_nickname = decoded_message.split(':')[0]  # Lấy người gửi ảnh
+                
+                # Nhận kích thước của ảnh
+                img_size_data = client.recv(4)
+                img_size = int.from_bytes(img_size_data, byteorder='big')
+
+                # Nhận toàn bộ dữ liệu ảnh
+                img_data = b''
+                while len(img_data) < img_size:
+                    img_data += client.recv(4096)
+                
+                # Lưu ảnh vào file (nếu cần)
+                with open('received_image_from_client.png', 'wb') as f:
+                    f.write(img_data)
+
+                # Gửi ảnh đến tất cả các client khác
+                broadcast(f'{sender_nickname}: IMG'.encode('utf-8'))  # Gửi header 'IMG'
+                broadcast(img_size_data)  # Gửi kích thước ảnh
+                broadcast(img_data)  # Gửi dữ liệu ảnh
 
             else:
-                addNotification(f"Message from {message.decode('utf-8')}")
+                # Xử lý tin nhắn văn bản thông thường
+                addNotification(f"Message from {decoded_message}")
                 broadcast(message)
+
         except Exception as e:
-            print(f'Error: {e}')
+            print(f'Error occurred: {e}')
+            clients.remove(client)
+            client.close()
             break
 
-    # Remove client from lists and notify others
+    # Loại bỏ client khỏi danh sách khi ngắt kết nối
     if client in clients:
         clients.remove(client)
-    nickname = nicknames.pop(clients.index(
-        client)) if client in clients else "Unknown"
-    broadcast(f'{nickname} left the chat!'.encode('utf-8'))
+    index = clients.index(client) if client in clients else None
+    if index is not None:
+        nickname = nicknames.pop(index)
+        broadcast(f'{nickname} left the chat!'.encode('utf-8'))
     client.close()
 
-
 def receive():
+
+    
     while True:
         client, address = server.accept()
         # print(f'Connected with {str(address)}')
