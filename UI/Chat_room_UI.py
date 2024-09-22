@@ -79,10 +79,6 @@ def receive():
         except Exception as e:
             print(f'An error occurred: {e}')
             client.close()
-            break
-
-
-
 
 def addNote(msg):
     label = ctk.CTkLabel(
