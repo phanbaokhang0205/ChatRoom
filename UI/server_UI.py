@@ -24,14 +24,13 @@ server.listen()
 clients = []
 nicknames = []
 
-
 def addNotification(notification):
     app.after(0, lambda: Noti_Item(noti_frame, notification))
-
 
 def broadcast(message):
     for client in clients:
         try:
+            
             client.send(message)
         except ConnectionResetError:
             # Nếu client đã ngắt kết nối, loại bỏ khỏi danh sách
@@ -43,27 +42,77 @@ def broadcast(message):
 def handle(client):
     while True:
         try:
+            # Nhận dữ liệu từ client
             message = client.recv(4096)
+            
             if not message:
                 break
-            if message.startswith(b'FILE:'):
-                file_size = int(message[5:].decode())
-                file_data = b''
-                while len(file_data) < file_size:
-                    packet = client.recv(4096)
-                    if not packet:
-                        break
-                    file_data += packet
-                broadcast(b'FILE:' + file_data)
+
+            # Kiểm tra nếu là header 'IMG' để nhận dữ liệu ảnh
+            if message == b'IMG':
+                # Nhận kích thước của ảnh
+                img_size_data = client.recv(4)
+                img_size = int.from_bytes(img_size_data, byteorder='big')
+                
+                # Nhận toàn bộ dữ liệu ảnh
+                img_data = b''
+                while len(img_data) < img_size:
+                    img_data += client.recv(4096)
+                
+                # Lưu ảnh vào file
+                with open('received_image_from_client.png', 'wb') as f:
+                    f.write(img_data)
+
+                # Gửi ảnh đến tất cả các client khác
+                broadcast(b'IMG')  # Gửi header 'IMG'
+                broadcast(img_size_data)  # Gửi kích thước ảnh
+                broadcast(img_data)  # Gửi dữ liệu ảnh
 
             else:
+                # Xử lý tin nhắn thông thường
                 addNotification(f"Message from {message.decode('utf-8')}")
                 broadcast(message)
-        except Exception as e:
-            print(f'Error: {e}')
-            break
 
-    # Remove client from lists and notify others
+        except:
+            # Ngắt kết nối khi có lỗi
+            clients.remove(client)
+            client.close()
+            break
+    
+
+def handle(client):
+    while True:
+        try:
+            message = client.recv(4096)
+            
+            if not message:
+                break
+
+            if message == b'IMG':
+                img_size_data = client.recv(4)
+                img_size = int.from_bytes(img_size_data, byteorder='big')
+                img_data = b''
+                
+                while len(img_data) < img_size:
+                    img_data += client.recv(4096)
+                
+                # Lấy nickname của client hiện tại
+                index = clients.index(client)
+                sender_nickname = nicknames[index]
+                
+                # Gửi thông báo là người gửi ảnh
+                broadcast(f'{sender_nickname}: IMG'.encode('utf-8'))  
+                broadcast(img_size_data)  # Gửi kích thước ảnh
+                broadcast(img_data)  # Gửi dữ liệu ảnh
+
+            else:
+                # Xử lý tin nhắn văn bản thông thường
+                broadcast(message)
+        except:
+            clients.remove(client)
+            client.close()
+            break
+# Remove client from lists and notify others
     if client in clients:
         clients.remove(client)
     nickname = nicknames.pop(clients.index(
@@ -73,6 +122,8 @@ def handle(client):
 
 
 def receive():
+
+    
     while True:
         client, address = server.accept()
         # print(f'Connected with {str(address)}')

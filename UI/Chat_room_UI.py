@@ -35,56 +35,53 @@ def receive():
     while True:
         try:
             # Nhận dữ liệu từ server
-            message = client.recv(4096)  # Tăng kích thước buffer để nhận file ảnh lớn hơn
+            message = client.recv(4096)
             
             if not message:
-                break  # Kết thúc khi không còn dữ liệu
+                break
 
-            # Kiểm tra nếu tin nhắn yêu cầu tên (NAME)
-            if message.startswith(b'NAME'):
+            decoded_message = message.decode('utf-8', errors='ignore')
+
+            # Kiểm tra nếu server yêu cầu tên nickname
+            if decoded_message == 'NAME':
                 client.send(nickname.encode('utf-8'))
-            
-            # Kiểm tra nếu là file (dữ liệu ảnh)
-            # Kiểm tra nếu là file (dữ liệu ảnh)
-            elif message.startswith(b'FILE:'):
-                # Nhận kích thước tệp tin
-                file_size = int(message[5:].decode('utf-8'))
-                file_data = b''
-                
-                # Nhận dữ liệu tệp tin
-                while len(file_data) < file_size:
-                    packet = client.recv(4096)
-                    if not packet:
-                        break
-                    file_data += packet
-                
-                # Lưu file ảnh vào máy
-                image_filename = f'{nickname}_received_image.png'
-                with open(image_filename, 'wb') as f:
-                    f.write(file_data)
 
-                # Kiểm tra nếu là tin nhắn của chính bạn hoặc người khác
-                if message.startswith(f'{nickname}:'.encode('utf-8')):
-                    add_image_message(f'{nickname}:', image_filename, ctk.E)  # Tin nhắn của chính bạn
+            # Kiểm tra xem nếu là ảnh
+            elif 'IMG' in decoded_message:
+                sender = decoded_message.split(':')[0]  # Lấy người gửi ảnh
+                
+                img_size_data = client.recv(4)
+                img_size = int.from_bytes(img_size_data, byteorder='big')
+                
+                img_data = b''
+                while len(img_data) < img_size:
+                    img_data += client.recv(4096)
+
+                # Lưu ảnh nhận được vào file
+                with open('received_image.png', 'wb') as f:
+                    f.write(img_data)
+
+                # Hiển thị ảnh dựa trên người gửi
+                if sender == nickname:
+                    add_image_message(f'{sender} sent an image:', 'received_image.png', ctk.E)
                 else:
-                    add_image_message(f'{nickname}:', image_filename, ctk.W)  # Tin nhắn của người khác
+                    add_image_message(f'{sender} sent an image:', 'received_image.png', ctk.W)
+
             else:
-                try:
-                    decoded_message = message.decode('utf-8')  # Chỉ giải mã nếu chắc chắn là văn bản
-                    if decoded_message.endswith('joined the chat!') or decoded_message == 'Connected to the server!':
-                        addNote(decoded_message)
-                    else:
-                        if decoded_message.startswith(f'{nickname}: '):
-                            addMessage(decoded_message, ctk.E)  # Tin nhắn của chính bạn
-                        else:
-                            addMessage(decoded_message, ctk.W)  # Tin nhắn từ người khác
-                except UnicodeDecodeError:
-                    # Bắt lỗi nếu không thể giải mã được do nhận phải dữ liệu nhị phân
-                    print("Received non-text data, likely a file or corrupt message.")
+                # Xử lý tin nhắn văn bản thông thường
+                if decoded_message.endswith('joined the chat!') or decoded_message == 'Connected to the server!':
+                    addNote(decoded_message)
+                elif decoded_message.startswith(f'{nickname}: '):
+                    addMessage(decoded_message, ctk.E)  # Tin nhắn của bạn
+                else:
+                    addMessage(decoded_message, ctk.W)  # Tin nhắn từ người khác
+                
         except Exception as e:
             print(f'An error occurred: {e}')
             client.close()
             break
+
+
 
 
 def addNote(msg):
@@ -484,16 +481,26 @@ class Icons_Of_Input(ctk.CTkFrame):
         ).grid(row=0, column=2)
     
     def send_image(self):
-        file_path = filedialog.askopenfilename()
-        if file_path:
-            try:
-                with open(file_path, 'rb') as f:
-                    file_data = f.read()  # Đọc file dưới dạng nhị phân
-                    file_size = len(file_data)
-                    client.send(f'FILE:{file_size}'.encode('utf-8'))  # Gửi kích thước tệp tin trước
-                    client.sendall(file_data)  # Gửi dữ liệu tệp tin
-            except Exception as e:
-                print(f'Error sending image: {e}')
+        filename = filedialog.askopenfilename(initialdir='/', title='Select a file', filetypes=(("png files", "*.png"), ("all files", "*.*")))
+        
+        if filename:
+            with open(filename, 'rb') as f:
+                img_data = f.read()
+
+            img_size = len(img_data)
+
+            # Gửi thông báo 'IMG' như tin nhắn văn bản
+            message = f'{nickname}: IMG'
+            client.send(message.encode('utf-8'))
+
+            # Gửi kích thước và dữ liệu ảnh
+            client.send(img_size.to_bytes(4, byteorder='big'))  
+            client.sendall(img_data)
+
+            # Hiển thị ảnh phía client gửi (ctk.E)
+            # add_image_message(f'{nickname} (you) sent an image:', filename, ctk.E)
+
+
 
     def send_file(event=None):
         file_path = filedialog.askopenfilename()  # Chọn file
