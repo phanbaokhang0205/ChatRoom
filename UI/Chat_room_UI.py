@@ -3,11 +3,10 @@ from PIL import Image, ImageDraw, ImageOps
 import socket
 import threading
 
-import tkinter as tk
 from tkinter import filedialog
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(('192.168.2.129', 6543))
+client.connect(('127.0.0.1', 6543))
 
 WINDOW_WIDTH = 1700 - 600
 WINDOW_HEIGHT = 1111 - 500

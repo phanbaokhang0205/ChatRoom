@@ -13,7 +13,6 @@ CYAN2 = '#3BD9FC'
 BLACK = '#2B2B2B'
 LIGHT_BLACK = '#353535'
 
-
 host = '127.0.0.1'
 port = 6543
 
@@ -128,8 +127,6 @@ def show_frame(frame_to_show, button_to_config):
     button_to_config.configure(fg_color=CYAN, text_color=BLACK)
 
 # 1: container
-
-
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
