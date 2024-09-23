@@ -587,6 +587,7 @@ if __name__ == "__main__":
     # Hiển thị frame chính khi khởi động
     show_frame(app.frames['noti_frame'], opt_button.noti_btn)
 
+    threading.Thread(target=receive, daemon=True).start()
     addNotification('Server is listening...')
 
     app.mainloop()

@@ -23,13 +23,15 @@ server.listen()
 clients = []
 nicknames = []
 
+
 def addNotification(notification):
     app.after(0, lambda: Noti_Item(noti_frame, notification))
+
 
 def broadcast(message):
     for client in clients:
         try:
-            
+
             client.send(message)
         except ConnectionResetError:
             # Nếu client đã ngắt kết nối, loại bỏ khỏi danh sách
@@ -43,15 +45,16 @@ def handle(client):
         try:
             # Nhận dữ liệu từ client
             message = client.recv(4096)
-            
+
             if not message:
                 break
 
             # Kiểm tra nếu tin nhắn chứa 'IMG' để nhận dữ liệu ảnh
             decoded_message = message.decode('utf-8', errors='ignore')
             if 'IMG' in decoded_message:
-                sender_nickname = decoded_message.split(':')[0]  # Lấy người gửi ảnh
-                
+                sender_nickname = decoded_message.split(
+                    ':')[0]  # Lấy người gửi ảnh
+
                 # Nhận kích thước của ảnh
                 img_size_data = client.recv(4)
                 img_size = int.from_bytes(img_size_data, byteorder='big')
@@ -60,13 +63,14 @@ def handle(client):
                 img_data = b''
                 while len(img_data) < img_size:
                     img_data += client.recv(4096)
-                
+
                 # Lưu ảnh vào file (nếu cần)
                 with open('received_image_from_client.png', 'wb') as f:
                     f.write(img_data)
 
                 # Gửi ảnh đến tất cả các client khác
-                broadcast(f'{sender_nickname}: IMG'.encode('utf-8'))  # Gửi header 'IMG'
+                broadcast(f'{sender_nickname}: IMG'.encode(
+                    'utf-8'))  # Gửi header 'IMG'
                 broadcast(img_size_data)  # Gửi kích thước ảnh
                 broadcast(img_data)  # Gửi dữ liệu ảnh
 
@@ -90,9 +94,9 @@ def handle(client):
         broadcast(f'{nickname} left the chat!'.encode('utf-8'))
     client.close()
 
+
 def receive():
 
-    
     while True:
         client, address = server.accept()
         # print(f'Connected with {str(address)}')
@@ -117,16 +121,18 @@ def show_frame(frame_to_show, button_to_config):
         frame.grid_forget()
 
     # Hiển thị frame được chọn
-    frame_to_show.grid(row=0, column=1, sticky='snew', padx=(0, 30))
+    frame_to_show.grid(row=0, column=0, sticky=ctk.NSEW, padx=(0, 5))
 
     # Reset trạng thái tất cả các button
     for button in app.buttons.values():
-        button.configure(fg_color=GREY, text_color='white')
+        button.configure(fg_color='transparent')
 
     # Highlight button được click
-    button_to_config.configure(fg_color=CYAN, text_color=BLACK)
+    button_to_config.configure(fg_color='lightgray')
 
 # 1: container
+
+
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -150,103 +156,239 @@ class Container(ctk.CTkFrame):
     def __init__(self, container):
         super().__init__(container, width=WINDOW_WIDTH,
                          height=WINDOW_HEIGHT, fg_color=LIGHT_BLACK, bg_color=LIGHT_BLACK)
-        self.columnconfigure(0, minsize=300)
-        self.columnconfigure(1, minsize=1080)
-        self.rowconfigure(0, weight=1)
+        self.rowconfigure(0, minsize=100)
+        self.rowconfigure(1, weight=1)
+        self.columnconfigure(0, minsize=100)
+        self.columnconfigure(1, weight=1)
 
         self.grid(row=0, column=0, sticky='snew')
 
-
-# 1: Option Buttons Frame
-class Option_Buttons(ctk.CTkFrame):
+# 1: Heading
+# 1.1 Icon
+class Searching_Label(ctk.CTkFrame):
     def __init__(self, container):
-        super().__init__(container, fg_color=LIGHT_BLACK, corner_radius=0)
-        self.columnconfigure(0, weight=1)
+        super().__init__(container, border_width=2, fg_color='transparent', corner_radius=40)
+        icon_src = ctk.CTkImage(
+            Image.open('icons/search.png'),
+            size=(30,30)
+        )
+        icon_search = ctk.CTkLabel(
+            master=self,
+            text='',
+            image=icon_src
+        )
+        icon_search.pack(anchor='w',side='left', padx=(10,10))
 
-        # Server Image
-        server_img = ctk.CTkImage(
-            Image.open("img/chat.png"), size=(120, 120)
+        search_input = ctk.CTkEntry(
+            master=self,
+            placeholder_text='Searching something ...',
+            border_width=0,
+            fg_color='transparent',
+            width=250
+        )
+        search_input.pack(expand=True, anchor='w', padx=(0,15), pady=5)
+
+
+class Heading_Frame(ctk.CTkFrame):
+    def __init__(self, container):
+        super().__init__(container, fg_color='white')
+        self.columnconfigure(0, weight=4)
+        self.columnconfigure(1, weight=6)
+        self.columnconfigure(1, weight=4)
+        self.rowconfigure(0, weight=1)
+
+        self.icon = Icon_Heading(self).grid(
+            row=0, column=0, sticky=ctk.W, padx=(10, 0))
+        self.search = Searching_Label(self).grid(row=0, column=1, sticky=ctk.W)
+        self.buttons = Button_Heading(self).grid(
+            row=0, column=2, sticky=ctk.E, padx=(0, 10))
+
+        self.grid(row=0, column=0, sticky=ctk.NSEW,
+                  pady=(10), padx=5, columnspan=2)
+
+
+class Icon_Heading(ctk.CTkFrame):
+    def __init__(self, container):
+        super().__init__(container, cursor='hand2', fg_color='transparent')
+
+        icon_src = ctk.CTkImage(
+            dark_image=Image.open('img/chat.png'),
+            size=(50, 50)
+        )
+        self.icon = ctk.CTkLabel(
+            master=self,
+            text='',
+            image=icon_src
         )
         self.title = ctk.CTkLabel(
             master=self,
-            text="",
-            image=server_img
+            text='Chat Server',
+            font=('Arial', 24, 'bold')
         )
-        self.title.grid(row=0, column=0, sticky='snew', padx=20, pady=20)
+        self.icon.pack(side='left', padx=(0, 15))
+        self.title.pack(expand=True)
 
-        # User List Button
-        self.noti_btn = option_button_item(
-            container=self,
-            text="Notification",
-            commands=lambda: show_frame(
-                app.frames['noti_parent'], self.noti_btn)  # Hiển thị Main_Content
+# 1.2 buttons heading
+
+
+class Button_Heading(ctk.CTkFrame):
+    def __init__(self, container):
+        super().__init__(container, fg_color='transparent')
+
+        out_icon = ctk.CTkImage(
+            dark_image=Image.open('icons/out.png'),
+            size=(30, 30)
         )
-        self.user_list_btn = option_button_item(
-            container=self,
-            text="User List",
-            commands=lambda: show_frame(
-                app.frames['user_frame'], self.user_list_btn)  # Hiển thị Main_Content
+        house_icon = ctk.CTkImage(
+            dark_image=Image.open('icons/house.png'),
+            size=(30, 30)
         )
-        self.file_mng = option_button_item(
-            container=self,
-            text="Files Manager",
-            commands=lambda: show_frame(
-                app.frames['files_list_frame'],self.file_mng )  # Hiển thị Main_Content
+        self.out_btn = ctk.CTkButton(
+            master=self,
+            text='Out',
+            image=out_icon,
+            compound=ctk.LEFT,
+            anchor=ctk.W,
+            fg_color='transparent',
+            text_color=BLACK,
+            width=80,
+            cursor='hand2',
+            hover_color='white'
         )
-        self.image_mng = option_button_item(
-            container=self,
-            text="Image Manager",
-            commands=lambda: show_frame(
-                app.frames['noti_parent'], self.image_mng)  # Hiển thị Main_Content
+        self.house_btn = ctk.CTkButton(
+            master=self,
+            text="Home",
+            image=house_icon,
+            compound=ctk.LEFT,
+            width=100,
+            cursor='hand2',
+            fg_color='lightgreen',
+            text_color=BLACK,
+            hover_color='lightgreen'
         )
-        self.media_mng = option_button_item(
-            container=self,
-            text="Media Manager",
-            commands=lambda: show_frame(
-                app.frames['noti_parent', self.media_mng])  # Hiển thị Main_Content
+        self.out_btn.pack(side='left')
+        self.house_btn.pack(expand=True)
+
+
+# 2. left side
+class Option_Buttons(ctk.CTkFrame):
+    def __init__(self, container):
+        super().__init__(container,  fg_color='transparent')
+        noti = ctk.CTkImage(
+            dark_image=Image.open('icons/noti.png'),
+            size=(30, 30)
+        )
+        users = ctk.CTkImage(
+            dark_image=Image.open('icons/team.png'),
+            size=(30, 30)
+        )
+        files = ctk.CTkImage(
+            dark_image=Image.open('icons/folder.png'),
+            size=(30, 30)
+        )
+        images = ctk.CTkImage(
+            dark_image=Image.open('icons/gallery.png'),
+            size=(30, 30)
         )
 
-        self.noti_btn.grid(row=1, sticky='ew', padx=(40, 40), pady=(20, 0))
-        self.user_list_btn.grid(row=2, sticky='ew', padx=(40, 40), pady=30)
-        self.file_mng.grid(row=3, sticky='ew', padx=(40, 40))
-        self.image_mng.grid(row=4, sticky='ew', padx=(40, 40), pady=30)
-        self.media_mng.grid(row=5, sticky='ew', padx=(40, 40))
+        self.noti_btn = ctk.CTkButton(
+            master=self,
+            text='Notification',
+            compound=ctk.TOP,
+            font=('Arial', 12, 'bold'),
+            image=noti,
+            width=80,
+            text_color=BLACK,
+            cursor='hand2',
+            fg_color='transparent',
+            hover_color='lightgray',
+            command=lambda: show_frame(
+                app.frames['noti_frame'], self.noti_btn)
+        )
+        self.user_btn = ctk.CTkButton(
+            master=self,
+            text='Users',
+            compound=ctk.TOP,
+            font=('Arial', 12, 'bold'),
+            image=users,
+            width=80,
+            text_color=BLACK,
+            cursor='hand2',
+            fg_color='transparent',
+            hover_color='lightgray',
+            command=lambda: show_frame(
+                app.frames['user_frame'], self.user_btn)
+        )
+        self.file_btn = ctk.CTkButton(
+            master=self,
+            text='Files',
+            compound=ctk.TOP,
+            font=('Arial', 12, 'bold'),
+            text_color=BLACK,
+            image=files,
+            width=80,
+            cursor='hand2',
+            fg_color='transparent',
+            hover_color='lightgray',
+            command=lambda: show_frame(
+                app.frames['noti_frame'], self.file_btn)
+        )
+        self.img_btn = ctk.CTkButton(
+            master=self,
+            text='Image',
+            compound=ctk.TOP,
+            text_color=BLACK,
+            font=('Arial', 12, 'bold'),
+            image=images,
+            width=80,
+            cursor='hand2',
+            fg_color='transparent',
+            hover_color='lightgray',
+            command=lambda: show_frame(
+                app.frames['noti_frame'], self.img_btn)
+        )
 
         # Lưu các button vào dictionary để quản lý
         app.buttons = {
-            'user_list_btn': self.user_list_btn,
+            'user_list_btn': self.user_btn,
             'noti_btn': self.noti_btn,
-            'image_mng': self.image_mng,
-            'file_mng': self.file_mng,
-            'media_mng': self.media_mng
+            'image_mng': self.img_btn,
+            'file_mng': self.file_btn,
         }
+        self.noti_btn.pack(expand=True, ipadx=5, ipady=5, pady=(0, 10))
+        self.user_btn.pack(expand=True, ipadx=5, padx=10,
+                           ipady=5, pady=(0, 10))
+        self.file_btn.pack(expand=True, ipadx=5, ipady=5, pady=(0, 10))
+        self.img_btn.pack(expand=True, ipadx=5, ipady=5, pady=(0, 10))
 
-        self.grid(row=0, column=0, sticky='snew')
+        self.pack(pady=(10, 0))
 
 
-class option_button_item(ctk.CTkButton):
-    def __init__(self, container, commands, text, fg=GREY, tcl='white'):
-        super().__init__(container, text=text, font=('Aria', 14, 'bold'),
-                         fg_color=fg, text_color=tcl, height=50, corner_radius=5, cursor="hand2", border_color=CYAN, command=commands, hover_color=CYAN)
-
-
-# ----------------------Noti Frame----------------------------------------------------
-class Notification_Frame_Parent(ctk.CTkFrame):
+class Button_Side_Frame(ctk.CTkFrame):
     def __init__(self, container):
-        super().__init__(container, fg_color=LIGHT_BLACK)
+        super().__init__(container, fg_color='white')
+
+        self.grid(row=1, column=0, sticky=ctk.NS, pady=(0, 5), padx=5)
+
+# 3. content
+
+
+class Main_Content(ctk.CTkFrame):
+    def __init__(self, container):
+        super().__init__(container, fg_color='transparent')
         self.rowconfigure(0, weight=1)
-        self.rowconfigure(1, weight=1)
-        self.rowconfigure(2, weight=9)
+        self.columnconfigure(0, weight=1)
 
-        self.columnconfigure(0, weight=1080)
-        self.grid(row=0, column=1, sticky='nsew')
+        self.grid(row=1, column=1, sticky=ctk.NSEW, pady=(0, 5), padx=5)
 
 
-class Notification_Frame(ctk.CTkScrollableFrame):
+# 3.1 ----------------------Noti Frame----------------------------------------------------
+class Noti_Frame(ctk.CTkScrollableFrame):
     def __init__(self, container):
-        super().__init__(container, fg_color=CYAN, corner_radius=10)
+        super().__init__(container, fg_color='white')
 
-        self.grid(row=2, column=0, sticky='nsew', pady=(20, 20), padx=(0, 0))
+
+        self.grid(row=0, column=0, sticky=ctk.NSEW, padx=(0, 5))
 
 
 class Noti_Item(ctk.CTkFrame):
@@ -276,49 +418,93 @@ class Noti_Item(ctk.CTkFrame):
         self.noti.grid(row=0, column=1, sticky='w', padx=10)
 
         self.pack(padx=20, pady=20, ipadx=10, anchor='w')
-# ----------------------User Frame----------------------------------------------------
 
 
-class User_List_Frame(ctk.CTkFrame):
+# 3.2 ----------------------User Frame----------------------------------------------------
+class User_Frame(ctk.CTkFrame):
     def __init__(self, container):
-        super().__init__(container, fg_color=LIGHT_BLACK, corner_radius=0)
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(0, weight=1)
-        self.rowconfigure(1, weight=10)
+        super().__init__(container, fg_color='white')
 
-        self.grid(row=0, column=1, sticky='snew', padx=(0, 30))
+        self.title = Title_User(self)
+        self.content = Content_Table(self)
+
+        self.grid(row=0, column=0, sticky=ctk.NSEW, padx=(0, 5))
 
 # 2.1 Table user list
 
 
-class Title_Table(ctk.CTkFrame):
+class Title_User(ctk.CTkFrame):
     def __init__(self, container):
-        super().__init__(container, fg_color=CYAN)
+        super().__init__(container, fg_color=CYAN2)
         self.rowconfigure(0, weight=1)
 
         # Giới hạn kích thước của cột ID và cột tuổi
         # Cột ID có kích thước tối thiểu là 50px
-        self.columnconfigure(0, minsize=30)
+        self.columnconfigure(0, weight=1)
         # Cột Tuổi (Age) có kích thước tối thiểu là 50px
-        self.columnconfigure(2, minsize=30)
+        self.columnconfigure(2, minsize=350)
 
         # Cột Tên và Email có thể giãn ra
-        self.columnconfigure(1, minsize=450)  # Cột Tên có trọng số lớn hơn
-        self.columnconfigure(3, minsize=450)  # Cột Email có trọng số lớn hơn
+        self.columnconfigure(1, weight=1)  # Cột Tên có trọng số lớn hơn
+        self.columnconfigure(3, minsize=350)  # Cột Email có trọng số lớn hơn
 
         self.id_title = title_item(self, "ID", 0)
         self.name_title = title_item(self, "Full name", 1)
         self.age_title = title_item(self, "Age", 2)
         self.email_title = title_item(self, "Email", 3)
 
-        self.grid(row=0, column=0, sticky='snew', pady=(40, 20))
+        self.pack(side=ctk.TOP, expand=False,
+                  fill='x', ipady=10, padx=8, pady=5)
 
 
 class title_item(ctk.CTkLabel):
     def __init__(self, container, text, column):
         super().__init__(container, text=text, font=("Aria", 14, 'bold'))
 
-        self.grid(row=0, column=column, sticky='snew')
+        self.grid(row=0, column=column)
+
+
+class Content_Table(ctk.CTkScrollableFrame):
+    def __init__(self, container):
+        super().__init__(container, fg_color=CYAN, height=450, corner_radius=10)
+        self.columnconfigure(0, weight=1)
+
+        i = 0
+
+        for user in users:
+            user_infor_item(
+                self, i, i +
+                1, user.get('name'), user.get('age'), user.get('email')
+            )
+            i += 1
+
+        self.pack(expand=True, fill='both', padx=8, pady=5)
+
+
+class user_infor_item(ctk.CTkFrame):
+    def __init__(self, container, row, id, fullname, age, email):
+        super().__init__(container, fg_color='white')
+        self.rowconfigure(0, weight=1)
+
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(2, minsize=300)
+
+        self.columnconfigure(1, weight=1)
+        self.columnconfigure(3, minsize=350)
+
+        self.id_value = infor_Item(self, id, 0)
+        self.name_value = infor_Item(self, fullname, 1)
+        self.age_value = infor_Item(self, age, 2)
+        self.email_value = infor_Item(self, email, 3)
+
+        self.grid(row=row, column=0, sticky='snew', pady=(0, 30))
+
+
+class infor_Item(ctk.CTkLabel):
+    def __init__(self, container, text, column):
+        super().__init__(container, text=text, font=("Aria", 14), height=40)
+
+        self.grid(row=0, column=column)
 
 
 users = [
@@ -351,206 +537,77 @@ users = [
         'name': 'Le Van Quoc Huy',
         'age': '20',
         'email': 'quochuydz@gmail.com',
+    },
+    {
+        'name': 'Le Van Quoc Huy',
+        'age': '20',
+        'email': 'quochuydz@gmail.com',
+    },
+    {
+        'name': 'Le Van Quoc Huy',
+        'age': '20',
+        'email': 'quochuydz@gmail.com',
+    },
+    {
+        'name': 'Le Van Quoc Huy',
+        'age': '20',
+        'email': 'quochuydz@gmail.com',
+    },
+    {
+        'name': 'Le Van Quoc Huy',
+        'age': '20',
+        'email': 'quochuydz@gmail.com',
+    },
+    {
+        'name': 'Le Van Quoc Huy',
+        'age': '20',
+        'email': 'quochuydz@gmail.com',
+    },
+    {
+        'name': 'Le Van Quoc Huy',
+        'age': '20',
+        'email': 'quochuydz@gmail.com',
+    },
+    {
+        'name': 'Le Van Quoc Huy',
+        'age': '20',
+        'email': 'quochuydz@gmail.com',
+    },
+    {
+        'name': 'Le Van Quoc Huy',
+        'age': '20',
+        'email': 'quochuydz@gmail.com',
+    },
+    {
+        'name': 'Le Van Quoc Huy',
+        'age': '20',
+        'email': 'quochuydz@gmail.com',
     }
 ]
 
 
-class Content_Table(ctk.CTkScrollableFrame):
-    def __init__(self, container):
-        super().__init__(container, fg_color=CYAN, height=450, corner_radius=10)
-        self.columnconfigure(0, weight=1)
-
-        i = 0
-
-        for user in users:
-            user_infor_item(
-                self, i, i +
-                1, user.get('name'), user.get('age'), user.get('email')
-            )
-            i += 1
-
-        self.grid(row=1, column=0, sticky='snew', pady=(0, 20), padx=(0, 0))
-
-
-class user_infor_item(ctk.CTkFrame):
-    def __init__(self, container, row, id, fullname, age, email):
-        super().__init__(container, fg_color=CYAN,)
-        self.rowconfigure(0, weight=1)
-
-        # Giới hạn kích thước của cột ID và cột tuổi
-        # Cột ID có kích thước tối thiểu là 50px
-        self.columnconfigure(0, minsize=30)
-        # Cột Tuổi (Age) có kích thước tối thiểu là 50px
-        self.columnconfigure(2, minsize=30)
-
-        # Cột Tên và Email có thể giãn ra
-        self.columnconfigure(1, minsize=450)  # Cột Tên có trọng số lớn hơn
-        self.columnconfigure(3, minsize=450)  # Cột Email có trọng số lớn hơn
-
-        self.id_value = infor_Item(self, id, 0)
-        self.name_value = infor_Item(self, fullname, 1)
-        self.age_value = infor_Item(self, age, 2)
-        self.email_value = infor_Item(self, email, 3)
-
-        self.grid(row=row, column=0, sticky='snew', pady=10)
-
-
-class infor_Item(ctk.CTkLabel):
-    def __init__(self, container, text, column):
-        super().__init__(container, text=text, font=("Aria", 14), anchor='center')
-
-        self.grid(row=0, column=column, sticky='snew')
-
-
 # ----------------------File manager Frame----------------------------------------------------
-files = [
-    {
-        'type': 'icons/type_file.png',
-        'file_name': 'This is file name.',
-        'author': 'Author Nguyen',
-        'size': '4 MB'
-    },
-    {
-        'type': 'icons/type_file.png',
-        'file_name': 'This is file name.',
-        'author': 'Author Nguyen',
-        'size': '4 MB'
-    },
-    {
-        'type': 'icons/type_file.png',
-        'file_name': 'This is file name.',
-        'author': 'Author Nguyen',
-        'size': '4 MB'
-    },
-    {
-        'type': 'icons/type_file.png',
-        'file_name': 'This is file name.',
-        'author': 'Author Nguyen',
-        'size': '4 MB'
-    },
-    {
-        'type': 'icons/type_file.png',
-        'file_name': 'This is file name.',
-        'author': 'Author Nguyen',
-        'size': '4 MB'
-    },
-]
-
-
-class Files_List_Frame(ctk.CTkFrame):
-    def __init__(self, container):
-        super().__init__(container, fg_color=LIGHT_BLACK, )
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(0, weight=1)
-        self.rowconfigure(1, weight=10)
-
-        self.grid(row=0, column=1, sticky='snew', padx=(0, 30))
-
-
-class Files_Title_Table(ctk.CTkFrame):
-    def __init__(self, container):
-        super().__init__(container, fg_color=CYAN,corner_radius=10)
-        self.rowconfigure(0, weight=1)
-        # Cột Loại
-        self.columnconfigure(0, minsize=100)
-        # Cột Tên file
-        self.columnconfigure(1, minsize=350)
-        # Cột Tác giả
-        self.columnconfigure(2, minsize=250)
-        # Cột kích thước
-        self.columnconfigure(3, minsize=350)
-
-        self.type_title = title_item(self, "Type", 0)
-        self.name_title = title_item(self, "File name", 1)
-        self.author_title = title_item(self, "Author", 2)
-        self.size_title = title_item(self, "Size", 3)
-
-        self.grid(row=0, column=0, sticky='snew', pady=(40, 20))
-
-
-class file_title_item(ctk.CTkLabel):
-    def __init__(self, container, text, column):
-        super().__init__(container, text=text, font=("Aria", 14, 'bold'))
-
-        self.grid(row=0, column=column, sticky='snew')
-
-
-class Files_Content_Table(ctk.CTkScrollableFrame):
-    def __init__(self, container):
-        super().__init__(container, fg_color=CYAN, height=450, corner_radius=10)
-        self.columnconfigure(0, weight=1)
-
-        i = 0
-
-        for file in files:
-            file_infor_item(
-                self, i, file.get('type'), file.get(
-                    'file_name'), file.get('author'), file.get('size'),
-            )
-            i += 1
-
-        self.grid(row=1, column=0, sticky='snew', pady=(0, 20), padx=(0, 0))
-
-
-class file_infor_item(ctk.CTkFrame):
-    def __init__(self, container, row, type, name, author, size):
-        super().__init__(container, fg_color=CYAN,)
-        self.rowconfigure(0, weight=1)
-        # Cột Loại
-        self.columnconfigure(0, minsize=100)
-        # Cột Tên file
-        self.columnconfigure(1, minsize=350)
-        # Cột Tác giả
-        self.columnconfigure(2, minsize=250)
-        # Cột kích thước
-        self.columnconfigure(3, minsize=250)
-
-        img = ctk.CTkImage(
-            Image.open(type)
-        )
-        self.type_value = ctk.CTkLabel(self, text='', image=img)
-        self.type_value.grid(
-            row=0, column=0, sticky='snew')
-        self.name_value = file_Item(self, name, 1)
-        self.author_value = file_Item(self, author, 2)
-        self.size_value = file_Item(self, size, 3)
-
-        self.grid(row=row, column=0, sticky='snew', pady=10)
-
-
-class file_Item(ctk.CTkLabel):
-    def __init__(self, container, text, column):
-        super().__init__(container, text=text, font=("Aria", 14), anchor='center')
-
-        self.grid(row=0, column=column, sticky='snew')
 
 
 if __name__ == "__main__":
     app = App()
-    container = Container(app)
+    con = Container(app)
 
-    button_frame = Option_Buttons(container)
-    userListFrame = User_List_Frame(container)
+    heading = Heading_Frame(con)
+    side = Button_Side_Frame(con)
+    content = Main_Content(con)
+    opt_button = Option_Buttons(side)
 
-    title_table = Title_Table(userListFrame)
-    content_table = Content_Table(userListFrame)
-
-    noti_parent = Notification_Frame_Parent(container)
-    noti_frame = Notification_Frame(noti_parent)
-
-    files_list_frame = Files_List_Frame(container)
-    file_title_table = Files_Title_Table(files_list_frame)
-    file_content_table = Files_Content_Table(files_list_frame)
+    noti_frame = Noti_Frame(content)
+    user_frame = User_Frame(content)
 
     # Thêm frame vào từ điển
-    app.add_frame('user_frame', userListFrame)
-    app.add_frame('noti_parent', noti_parent)
-    app.add_frame('files_list_frame', files_list_frame)
+    app.add_frame('noti_frame', noti_frame)
+    app.add_frame('user_frame', user_frame)
 
     # Hiển thị frame chính khi khởi động
-    show_frame(app.frames['noti_parent'], button_frame.noti_btn)
+    show_frame(app.frames['noti_frame'], opt_button.noti_btn)
 
-    # print('Server is listening...')
     threading.Thread(target=receive, daemon=True).start()
     addNotification('Server is listening...')
 
