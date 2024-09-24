@@ -75,7 +75,6 @@ def register_GUI(name, age, email, password, re_pass):
 def printUsers():
     print("users")
 
-
 def goToRegister():
     login_container.pack_forget()
     register_container.pack(fill='both')

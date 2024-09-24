@@ -3,6 +3,7 @@ from PIL import Image, ImageDraw, ImageOps
 import socket
 import threading
 from tkinter import filedialog
+from tkinter import messagebox
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(('127.0.0.1', 6543))
@@ -67,7 +68,7 @@ def receive():
 
             else:
                 # Xử lý tin nhắn văn bản thông thường
-                if decoded_message.endswith('joined the chat!') or decoded_message == 'Connected to the server!':
+                if decoded_message.endswith('joined the chat!') or decoded_message.endswith('left the chat!') or decoded_message == 'Connected to the server!':
                     addNote(decoded_message)
                 elif decoded_message.startswith(f'{nickname}: '):
                     addMessage(decoded_message, ctk.E)  # Tin nhắn của bạn
@@ -589,9 +590,11 @@ class Icon_of_Right(ctk.CTkFrame):
 
         volume_off = Image.open('icons/mute.png')
         search = Image.open('icons/search.png')
+        exit = Image.open('icons/exit.png')
 
         volume_icon = ctk.CTkImage(volume_off)
         search_icon = ctk.CTkImage(search)
+        exit_icon = ctk.CTkImage(exit)
 
         self.volume_icon = ctk.CTkButton(
             master=self,
@@ -609,8 +612,27 @@ class Icon_of_Right(ctk.CTkFrame):
             bg_color=LIGHT_BLACK,
             fg_color=LIGHT_BLACK,
             width=43
-        ).pack(anchor='e')
+        ).pack(anchor='e', side='left')
 
+        self.exit_icon = ctk.CTkButton(
+            master=self,
+            image=exit_icon,
+            text='',
+            bg_color=LIGHT_BLACK,
+            fg_color=LIGHT_BLACK,
+            width=43,
+            command=self.confirm_leave_chat
+        ).pack(anchor='e', side='left')
+
+    def confirm_leave_chat(self):
+        answer = messagebox.askyesno("Corfirm", "Are you sure to leave this chat!")
+        if answer:
+            self.leave_chat()
+
+    def leave_chat(self):
+        client.send(f'{nickname} left the chat!'.encode('utf-8'))
+        client.close() # Đóng kết nối sau khi gửi
+        app.destroy()
 
 users = [
     {

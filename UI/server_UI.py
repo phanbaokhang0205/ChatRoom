@@ -31,7 +31,6 @@ def addNotification(notification):
 def broadcast(message):
     for client in clients:
         try:
-
             client.send(message)
         except ConnectionResetError:
             # Nếu client đã ngắt kết nối, loại bỏ khỏi danh sách
@@ -72,6 +71,12 @@ def handle(client):
                     'utf-8'))  # Gửi header 'IMG'
                 broadcast(img_size_data)  # Gửi kích thước ảnh
                 broadcast(img_data)  # Gửi dữ liệu ảnh
+            
+            elif 'left the chat!' in decoded_message:
+                nickname = decoded_message.split(' ')[0]
+                clients.remove(client)
+                broadcast(f'{nickname} left the chat!'.encode('utf-8'))
+                break # Dừng vòng lặp khi client rời đi
 
             else:
                 # Xử lý tin nhắn văn bản thông thường
