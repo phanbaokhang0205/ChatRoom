@@ -2,6 +2,7 @@ import customtkinter as ctk
 from PIL import Image, ImageDraw, ImageOps
 import socket
 import threading
+
 from tkinter import filedialog
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -212,31 +213,51 @@ class LeftTitle(ctk.CTkFrame):
             text='',
             bg_color=BLACK,
             fg_color=BLACK,
-            height=43, width=43
+            height=43, width=43,
+            hover_color='lightgray',
+            cursor='hand2'
         )
         self.new_icon.grid(row=0, column=1, sticky='e')
 
         # Entry search
         search_value = ctk.StringVar()
-        self.search_input = ctk.CTkEntry(
-            master=self,
-            textvariable=search_value,
-            border_width=0,
-            fg_color=GREY,
-            text_color='white'
-
-        )
+        self.search_input = Searching_Label(self, search_value)
         self.search_input.grid(row=1, columnspan=2, sticky='snew', pady=10)
 
         self.grid(row=0, column=0, sticky='snew', padx=(15, 10), pady=(5, 0))
+
+class Searching_Label(ctk.CTkFrame):
+    def __init__(self, container, text):
+        super().__init__(container, border_width=2, fg_color='transparent', corner_radius=40)
+        icon_src = ctk.CTkImage(
+            Image.open('icons/search.png'),
+            size=(30,30)
+        )
+        icon_search = ctk.CTkLabel(
+            master=self,
+            text='',
+            image=icon_src
+        )
+        icon_search.pack(anchor='w',side='left', padx=(10,10))
+
+        search_input = ctk.CTkEntry(
+            master=self,
+            placeholder_text='Searching something ...',
+            border_width=0,
+            fg_color='transparent',
+            width=250,
+            text_color='white',
+            textvariable=text
+        )
+        search_input.pack(expand=True, anchor='w', padx=(0,15), pady=5)
 
 # 2.1.1: Frame user
 
 class UserFrame(ctk.CTkFrame):
     def __init__(self, container, user_img, user_name, content_msg, row):
         super().__init__(container, fg_color=BLACK)
-        self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=4)
+        # self.columnconfigure(0, weight=1)
+        # self.columnconfigure(1, weight=4)
 
         # avatar
         avatar_src = create_rounded_image(user_img, 40)
@@ -248,17 +269,24 @@ class UserFrame(ctk.CTkFrame):
             image=new_img,
 
         )
-        self.avatar.grid(row=0, column=0, sticky='w', rowspan=2, pady=12)
+        # self.avatar.grid(row=0, column=0, sticky='w', rowspan=2, pady=12)
+        self.avatar.pack(side=ctk.LEFT)
+        self.pre_content = ContentFrame(self,user_name, content_msg).pack(side=ctk.RIGHT, expand=True)
 
-        # user_name
+
+        self.grid(row=row, column=0, sticky='snew', columnspan=2)
+
+class ContentFrame(ctk.CTkFrame):
+    def __init__(self, container, user_name, content_msg):
+        super().__init__(container, fg_color=BLACK)
+
         self.user_name = ctk.CTkLabel(
             master=self,
             text=user_name,
             text_color='white',
             font=("Arial", 14, 'bold')
-
         )
-        self.user_name.grid(row=0, column=1, sticky='w')
+        self.user_name.pack(side=ctk.TOP, anchor=ctk.W)
         # message_content
         self.pre_content = ctk.CTkLabel(
             master=self,
@@ -267,9 +295,8 @@ class UserFrame(ctk.CTkFrame):
             font=("Times", 15)
 
         )
-        self.pre_content.grid(row=1, column=1, sticky='w',)
+        self.pre_content.pack(side=ctk.BOTTOM, anchor=ctk.W)
 
-        self.grid(row=row, column=0, sticky='snew', columnspan=2)
 
 # 3: Frame o giua.
 class CenterFrame(ctk.CTkFrame):
@@ -344,7 +371,9 @@ class Icons_of_CenterTitle(ctk.CTkFrame):
             text='',
             bg_color=BLACK,
             fg_color=BLACK,
-            width=43
+            width=43,
+            hover_color='lightgray',
+            cursor='hand2'
         ).pack(anchor='e', side='left')
 
         self.video_icon = ctk.CTkButton(
@@ -353,7 +382,9 @@ class Icons_of_CenterTitle(ctk.CTkFrame):
             text='',
             bg_color=BLACK,
             fg_color=BLACK,
-            width=43
+            width=43,
+            hover_color='lightgray',
+            cursor='hand2'
         ).pack(anchor='e')
 
 # 3.1: Frame chua doan tin nhan.
@@ -404,13 +435,15 @@ class InputFrame(ctk.CTkFrame):
             image=like_icons,
             fg_color=LIGHT_BLACK,
             width=0,
-            command=self.send_like
+            hover_color='lightgray',
+            cursor='hand2'
+            # command=self.send_like
         )
         self.like_btn.grid(column=2, row=0)
 
         self.grid(row=2, column=0, sticky='snew', padx=0)
     
-    # Gui tin nhan thong thuong
+    # # Gui tin nhan thong thuong
     def write(self):
         try:
             message = f'{nickname}: {self.message.get()}'
@@ -452,7 +485,9 @@ class Icons_Of_Input(ctk.CTkFrame):
             bg_color=LIGHT_BLACK,
             fg_color=LIGHT_BLACK,
             width=5,
-            command=self.send_file
+            hover_color='lightgray',
+            cursor='hand2'
+            # command=self.send_file
         ).grid(row=0, column=0)
 
         self.mic_icon = ctk.CTkButton(
@@ -461,7 +496,9 @@ class Icons_Of_Input(ctk.CTkFrame):
             text='',
             bg_color=LIGHT_BLACK,
             fg_color=LIGHT_BLACK,
-            width=5
+            width=5,
+            hover_color='lightgray',
+            cursor='hand2',
         ).grid(row=0, column=1)
 
         self.gallery_icon = ctk.CTkButton(
@@ -471,7 +508,9 @@ class Icons_Of_Input(ctk.CTkFrame):
             bg_color=LIGHT_BLACK,
             fg_color=LIGHT_BLACK,
             width=5,
-            command=self.send_image
+            hover_color='lightgray',
+            cursor='hand2'
+            # command=self.send_image
         ).grid(row=0, column=2)
     
     def send_image(self):
@@ -552,6 +591,8 @@ class RightFrame(ctk.CTkFrame):
             text='Change Emoji',
             width=180,
             height=40,
+            hover_color='lightgray',
+            cursor='hand2',
             fg_color=("#f9f944", "blue"),
             text_color="black"
         )
@@ -560,6 +601,8 @@ class RightFrame(ctk.CTkFrame):
             text='Edit nicknames',
             width=180,
             height=40,
+            hover_color='lightgray',
+            cursor='hand2',
             fg_color=("#44e6f9", "blue"),
             text_color="black"
         )
@@ -568,6 +611,8 @@ class RightFrame(ctk.CTkFrame):
             text='Media',
             width=180,
             height=40,
+            hover_color='lightgray',
+            cursor='hand2',
             fg_color=("#44f975", "blue"),
             text_color="black"
         )
@@ -577,7 +622,9 @@ class RightFrame(ctk.CTkFrame):
             width=180,
             height=40,
             fg_color=("#f346f0", "blue"),
-            text_color="black"
+            text_color="black",
+            hover_color='lightgray',
+            cursor='hand2'
         )
         self.change_emoji.pack(pady=10)
         self.edit_nickname.pack()
@@ -602,7 +649,9 @@ class Icon_of_Right(ctk.CTkFrame):
             text='',
             bg_color=LIGHT_BLACK,
             fg_color=LIGHT_BLACK,
-            width=43
+            width=43,
+            hover_color='lightgray',
+            cursor='hand2'
         ).pack(anchor='e', side='left')
 
         self.search_icon = ctk.CTkButton(
@@ -611,7 +660,9 @@ class Icon_of_Right(ctk.CTkFrame):
             text='',
             bg_color=LIGHT_BLACK,
             fg_color=LIGHT_BLACK,
-            width=43
+            width=43,
+            hover_color='lightgray',
+            cursor='hand2'
         ).pack(anchor='e')
 
 
