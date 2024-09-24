@@ -1,6 +1,8 @@
 import customtkinter as ctk
 from PIL import Image, ImageDraw, ImageOps
 import sqlite3
+from tkinter import messagebox
+import subprocess
 
 
 def create_connection():
@@ -28,10 +30,10 @@ def create_connection():
 
 def add_user(name, age, email, password, re_pass):
     if not name.strip() or not email.strip() or not password.strip():
-        show_message("Bạn phải điền đầy đủ thông tin.")
+        messagebox.showwarning("Thông báo!", "Bạn phải điền đầy đủ thông tin!")
         return False
     if password != re_pass:
-        show_message("Mật khẩu không trùng khớp.")
+        messagebox.showerror("Thông báo!", "Mật khẩu không trùng khớp")
         return False
     conn = sqlite3.connect('chat_user.db')
 
@@ -55,30 +57,19 @@ def check_user(email, password):
 
 def login_GUI(email, password):
     if check_user(email, password):
-        show_message("Đăng nhập thành công.")
+        messagebox.showinfo("Thông báo!", "Đăng nhập thành công!")
+        app.destroy()
+        subprocess.Popen(['python', 'd:/PYTHON/KHANG/ChatRoom/UI/server_UI.py'])
+        
     else:
-        print("Mật khẩu hoặc email không chính xác.\n Vui lòng thử lại !")
+        messagebox.showerror("Thông báo!", "Tài khoản hoặc mật khẩu bị sai!")
 
 def register_GUI(name, age, email, password, re_pass):
     if add_user(name, age, email, password, re_pass):
-        show_message("Đăng ký thành công")
+        messagebox.showinfo("Thông báo!", "Đăng ký tài khoản thành công!")
         goToLogin()
     else:
-        print("Register failed")
-
-def show_message(message, master):  
-    # Tạo một cửa sổ Toplevel mới để hiển thị thông báo  
-    success_window = ctk.CTkToplevel()  
-    success_window.title("Thông báo")  
-    success_window.geometry("400x150+750+400")  
-
-    # Thêm một label để hiển thị thông báo  
-    message_label = ctk.CTkLabel(success_window, text=message)  
-    message_label.pack(pady=20)  
-
-    # Thêm một nút để đóng cửa sổ thông báo  
-    close_button = ctk.CTkButton(success_window, text="Đóng", command=success_window.destroy)  
-    close_button.pack(pady=10)
+        messagebox.showerror("Thông báo!", "Đăng ký tài khoản thất bại!")
 
 
 def printUsers():
