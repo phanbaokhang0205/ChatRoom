@@ -492,9 +492,6 @@ class Icons_Of_Input(ctk.CTkFrame):
             client.send(img_size.to_bytes(4, byteorder='big'))  
             client.sendall(img_data)
 
-            # Hiển thị ảnh phía client gửi (ctk.E)
-            # add_image_message(f'{nickname} (you) sent an image:', filename, ctk.E)
-
 
 
     def send_file(event=None):

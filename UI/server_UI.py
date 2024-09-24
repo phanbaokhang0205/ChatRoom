@@ -39,7 +39,6 @@ def broadcast(message):
                 clients.remove(client)
             print(f"Client {client} disconnected.")
 
-
 def handle(client):
     while True:
         try:
@@ -53,7 +52,7 @@ def handle(client):
             decoded_message = message.decode('utf-8', errors='ignore')
             if 'IMG' in decoded_message:
                 sender_nickname = decoded_message.split(
-                    ':')[0]  # Lấy người gửi ảnh
+                    ':')[0]  # Lấy người gửi ảnh, lấy phần tử đầu tiên trước dấu ':'
 
                 # Nhận kích thước của ảnh
                 img_size_data = client.recv(4)
